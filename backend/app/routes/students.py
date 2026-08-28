@@ -1,7 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter, 
+    Depends, 
+    HTTPException,
+    UploadFile,
+    File,
+    Form
+)
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-
+from datetime import date
 from app.database.database import get_db
 from app.database.models import (
     User,
@@ -19,6 +26,7 @@ from app.schemas.students import (
 
 from app.core.security import get_current_user
 
+from app.services.face_service import get_face_embedding
 
 router = APIRouter(
     prefix="/api/students",
@@ -70,130 +78,463 @@ def get_student_options(
         for assignment, school_class in assignments
     ]
 
+# ============================================================
+# CREATE STUDENT + REGISTER FACE
+# ============================================================
+
 @router.post(
     "/",
     response_model=StudentResponse
 )
-def create_student(
-    data: StudentCreate,
+async def create_student(
+
+    name: str = Form(...),
+    roll_number: str = Form(...),
+    date_of_birth: date | None = Form(None),
+    gender: str | None = Form(None),
+    class_name: str = Form(...),
+    section: str = Form(...),
+
+    file1: UploadFile | None = File(None),
+    file2: UploadFile | None = File(None),
+    file3: UploadFile | None = File(None),
+    file4: UploadFile | None = File(None),
+    file5: UploadFile | None = File(None),
+    file6: UploadFile | None = File(None),
+
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+
+    current_user: User = Depends(
+        get_current_user
+    )
 ):
 
-    # ----------------------------------------------------
-    # ONLY TEACHERS CAN CREATE STUDENTS
-    # ----------------------------------------------------
+    # ========================================================
+    # 1. ONLY TEACHERS
+    # ========================================================
 
     if current_user.role != "TEACHER":
+
         raise HTTPException(
             status_code=403,
             detail="Only teachers can create students"
         )
 
-    # ----------------------------------------------------
-    # CLEAN INPUT
-    # ----------------------------------------------------
 
-    class_name = data.class_name.strip()
-    section = data.section.strip().upper()
+    # ========================================================
+    # 2. CLEAN INPUT
+    # ========================================================
 
-    # ----------------------------------------------------
-    # FIND CLASS
-    # ----------------------------------------------------
+    name = name.strip()
+    roll_number = roll_number.strip()
+    class_name = class_name.strip()
+    section = section.strip().upper()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Student name is required"
+        )
+
+    if not roll_number:
+        raise HTTPException(
+            status_code=400,
+            detail="Roll number is required"
+        )
+
+
+    # ========================================================
+    # 3. FIND CLASS
+    # ========================================================
 
     school_class = (
         db.query(Class)
         .filter(
             Class.school_id == current_user.school_id,
-            func.lower(Class.name) == class_name.lower(),
-            func.upper(Class.section) == section
+
+            func.lower(Class.name)
+            == class_name.lower(),
+
+            func.upper(Class.section)
+            == section
         )
         .first()
     )
 
+
     if not school_class:
+
         raise HTTPException(
             status_code=404,
-            detail=f"Class '{class_name}' with section '{section}' not found"
+            detail=(
+                f"Class '{class_name}' with section "
+                f"'{section}' not found"
+            )
         )
 
-    # ----------------------------------------------------
-    # CHECK TEACHER ASSIGNMENT
-    # ----------------------------------------------------
+
+    # ========================================================
+    # 4. CHECK CLASS TEACHER
+    # ========================================================
 
     teacher_assignment = (
         db.query(TeacherAssignment)
         .filter(
-            TeacherAssignment.teacher_id == current_user.id,
-            TeacherAssignment.class_id == school_class.id,
-            TeacherAssignment.is_class_teacher == True,
-            TeacherAssignment.is_active == True
+
+            TeacherAssignment.teacher_id
+            == current_user.id,
+
+            TeacherAssignment.class_id
+            == school_class.id,
+
+            TeacherAssignment.is_class_teacher
+            == True,
+
+            TeacherAssignment.is_active
+            == True
         )
         .first()
     )
 
+
     if not teacher_assignment:
+
         raise HTTPException(
             status_code=403,
             detail=(
                 f"You are not the class teacher of "
-                f"{school_class.name} - Section {school_class.section}"
+                f"{school_class.name} - Section "
+                f"{school_class.section}"
             )
         )
 
-    # ----------------------------------------------------
-    # CHECK DUPLICATE ROLL NUMBER
-    # ----------------------------------------------------
+
+    # ========================================================
+    # 5. CHECK DUPLICATE ROLL NUMBER
+    # ========================================================
 
     existing_student = (
         db.query(Student)
         .filter(
-            Student.class_id == school_class.id,
-            Student.roll_number == data.roll_number
+
+            Student.school_id
+            == current_user.school_id,
+
+            Student.class_id
+            == school_class.id,
+
+            Student.roll_number
+            == roll_number
         )
         .first()
     )
 
+
     if existing_student:
+
         raise HTTPException(
             status_code=400,
-            detail="Roll number already exists in this class"
+            detail=(
+                "Roll number already exists in "
+                "this class"
+            )
         )
 
-    # ----------------------------------------------------
-    # CREATE STUDENT
-    # ----------------------------------------------------
+
+    # ========================================================
+    # 6. COLLECT PHOTOS
+    # ========================================================
+
+    files = [
+        file1,
+        file2,
+        file3,
+        file4,
+        file5,
+        file6
+    ]
+
+    files = [
+        file
+        for file in files
+        if file is not None
+    ]
+
+
+    if len(files) > 6:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Maximum 6 photos are allowed"
+        )
+
+
+    # ========================================================
+    # 7. CREATE STUDENT
+    # ========================================================
 
     student = Student(
-        school_id=current_user.school_id,
-        class_id=school_class.id,
-        name=data.name,
-        roll_number=data.roll_number,
-        date_of_birth=data.date_of_birth,
-        gender=data.gender,
-        section=school_class.section,
-        is_active=True
+
+        school_id=
+            current_user.school_id,
+
+        class_id=
+            school_class.id,
+
+        name=
+            name,
+
+        roll_number=
+            roll_number,
+
+        date_of_birth=
+            date_of_birth,
+
+        gender=
+            gender.strip()
+            if gender
+            else None,
+
+        section=
+            school_class.section,
+
+        is_active=
+            True
     )
 
-    db.add(student)
-    db.commit()
-    db.refresh(student)
 
-    # ----------------------------------------------------
-    # RETURN RESPONSE
-    # ----------------------------------------------------
+    db.add(student)
+
+    # Get student.id before committing
+    db.flush()
+
+
+    # ========================================================
+    # 8. PROCESS FACE PHOTOS
+    # ========================================================
+
+    registered_embeddings = []
+
+    successful_photos = []
+
+    failed_photos = []
+
+
+    for index, file in enumerate(files):
+
+        photo_number = index + 1
+
+
+        # ----------------------------------------------------
+        # FILE TYPE
+        # ----------------------------------------------------
+
+        if (
+            not file.content_type
+            or not file.content_type.startswith(
+                "image/"
+            )
+        ):
+
+            failed_photos.append({
+
+                "photo_number":
+                    photo_number,
+
+                "filename":
+                    file.filename,
+
+                "error":
+                    "Please upload an image file"
+            })
+
+            continue
+
+
+        # ----------------------------------------------------
+        # READ FILE
+        # ----------------------------------------------------
+
+        image_data = await file.read()
+
+
+        if not image_data:
+
+            failed_photos.append({
+
+                "photo_number":
+                    photo_number,
+
+                "filename":
+                    file.filename,
+
+                "error":
+                    "Uploaded image is empty"
+            })
+
+            continue
+
+
+        # ----------------------------------------------------
+        # GENERATE EMBEDDING
+        # ----------------------------------------------------
+
+        try:
+
+            face_data = get_face_embedding(
+                image_data
+            )
+
+
+            registered_embeddings.append(
+                face_data["embedding"]
+            )
+
+
+            successful_photos.append({
+
+                "photo_number":
+                    photo_number,
+
+                "filename":
+                    file.filename,
+
+                "confidence":
+                    round(
+                        float(
+                            face_data[
+                                "confidence"
+                            ]
+                        ),
+                        4
+                    )
+            })
+
+
+        except ValueError as e:
+
+            failed_photos.append({
+
+                "photo_number":
+                    photo_number,
+
+                "filename":
+                    file.filename,
+
+                "error":
+                    str(e)
+            })
+
+
+        except Exception as e:
+
+            print(
+                "FACE REGISTRATION ERROR:",
+                repr(e)
+            )
+
+            failed_photos.append({
+
+                "photo_number":
+                    photo_number,
+
+                "filename":
+                    file.filename,
+
+                "error":
+                    "Face processing failed"
+            })
+
+
+    # ========================================================
+    # 9. SAVE EMBEDDINGS
+    # ========================================================
+
+    if registered_embeddings:
+
+        student.face_embedding = (
+            registered_embeddings
+        )
+
+
+    # ========================================================
+    # 10. COMMIT EVERYTHING
+    # ========================================================
+
+    try:
+
+        db.commit()
+
+        db.refresh(student)
+
+    except Exception as e:
+
+        db.rollback()
+
+        print(
+            "CREATE STUDENT ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create student"
+        )
+
+
+    # ========================================================
+    # 11. RESPONSE
+    # ========================================================
 
     return {
-        "id": student.id,
-        "school_id": student.school_id,
-        "class_id": student.class_id,
-        "class_name": school_class.name,
-        "section": school_class.section,
-        "name": student.name,
-        "roll_number": student.roll_number,
-        "date_of_birth": student.date_of_birth,
-        "gender": student.gender,
-        "is_active": student.is_active
+
+        "id":
+            student.id,
+
+        "school_id":
+            student.school_id,
+
+        "class_id":
+            student.class_id,
+
+        "class_name":
+            school_class.name,
+
+        "section":
+            school_class.section,
+
+        "name":
+            student.name,
+
+        "roll_number":
+            student.roll_number,
+
+        "date_of_birth":
+            student.date_of_birth,
+
+        "gender":
+            student.gender,
+
+        "is_active":
+            student.is_active,
+
+        "face_registration": {
+
+            "photos_uploaded":
+                len(files),
+
+            "photos_registered":
+                len(successful_photos),
+
+            "photos_failed":
+                len(failed_photos),
+
+            "registered_photos":
+                successful_photos,
+
+            "failed_photos":
+                failed_photos
+        }
     }
     
 # ============================================================

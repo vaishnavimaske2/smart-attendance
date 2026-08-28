@@ -9,7 +9,9 @@ from pydantic import BaseModel
 # ============================================================
 
 class TeacherSubjectOption(BaseModel):
+
     id: int
+
     name: str
 
 
@@ -18,11 +20,20 @@ class TeacherSubjectOption(BaseModel):
 # ============================================================
 
 class TeacherClassOption(BaseModel):
+
+    class_id: int
+
     class_name: str
+
     section: str
+
     academic_year: str
+
     is_class_teacher: bool
-    subjects: List[TeacherSubjectOption]
+
+    subjects: List[
+        TeacherSubjectOption
+    ]
 
 
 # ============================================================
@@ -30,7 +41,10 @@ class TeacherClassOption(BaseModel):
 # ============================================================
 
 class TeacherOptionsResponse(BaseModel):
-    classes: List[TeacherClassOption]
+
+    classes: List[
+        TeacherClassOption
+    ]
 
 
 # ============================================================
@@ -38,10 +52,15 @@ class TeacherOptionsResponse(BaseModel):
 # ============================================================
 
 class TeacherStudentItem(BaseModel):
+
     id: int
+
     name: str
+
     roll_number: str
+
     date_of_birth: date | None
+
     gender: str | None
 
 
@@ -50,7 +69,9 @@ class TeacherStudentItem(BaseModel):
 # ============================================================
 
 class SelectedSubject(BaseModel):
+
     id: int
+
     name: str
 
 
@@ -59,8 +80,15 @@ class SelectedSubject(BaseModel):
 # ============================================================
 
 class TeacherStudentsResponse(BaseModel):
+
     class_name: str
+
     section: str
+
     academic_year: str
+
     subject: SelectedSubject
-    students: List[TeacherStudentItem]
+
+    students: List[
+        TeacherStudentItem
+    ]

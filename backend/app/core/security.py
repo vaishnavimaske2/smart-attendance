@@ -15,7 +15,7 @@ from app.core.config import (
 )
 
 from app.database.database import get_db
-from app.database.models import User
+from app.database.models import User, Student
 
 
 # --------------------------------
@@ -123,3 +123,70 @@ def get_current_user(
         )
 
     return user
+
+# --------------------------------
+# Student JWT Authentication
+# --------------------------------
+
+def get_current_student(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+
+    token = credentials.credentials
+
+    try:
+
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        subject = payload.get("sub")
+        role = payload.get("role")
+
+        if subject is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid student token"
+            )
+
+        if role != "STUDENT":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Student access required"
+            )
+
+        student_id = int(subject)
+
+    except (JWTError, ValueError):
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired student token"
+        )
+
+    student = (
+        db.query(Student)
+        .filter(
+            Student.id == student_id
+        )
+        .first()
+    )
+
+    if student is None:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Student not found"
+        )
+
+    if not student.is_active:
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Student account is inactive"
+        )
+
+    return student

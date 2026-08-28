@@ -15,13 +15,120 @@ from app.schemas.student_profile import (
     StudentProfileResponse
 )
 
-from app.core.security import get_current_user
+from app.core.security import (
+    get_current_user,
+    get_current_student
+)
 
 
 router = APIRouter(
     prefix="/api/student-profile",
     tags=["Student Profile"]
 )
+
+
+# ============================================================
+# GET CURRENT LOGGED-IN STUDENT PROFILE
+# ============================================================
+
+@router.get(
+    "/me",
+    response_model=StudentProfileResponse
+)
+def get_my_student_profile(
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(
+        get_current_student
+    )
+):
+
+    # --------------------------------------------------------
+    # FIND CLASS
+    # --------------------------------------------------------
+
+    school_class = (
+        db.query(Class)
+        .filter(
+            Class.id == current_student.class_id,
+            Class.school_id == current_student.school_id
+        )
+        .first()
+    )
+
+    if not school_class:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Student class not found"
+        )
+
+
+    # --------------------------------------------------------
+    # GET SUBJECTS
+    # --------------------------------------------------------
+
+    class_subjects = (
+        db.query(ClassSubject)
+        .filter(
+            ClassSubject.class_id == school_class.id,
+            ClassSubject.is_active == True
+        )
+        .all()
+    )
+
+
+    subjects = []
+
+
+    for class_subject in class_subjects:
+
+        subject = (
+            db.query(Subject)
+            .filter(
+                Subject.id == class_subject.subject_id,
+                Subject.school_id == current_student.school_id,
+                Subject.is_active == True
+            )
+            .first()
+        )
+
+
+        if subject:
+
+            subjects.append({
+                "subject_id": subject.id,
+                "subject_name": subject.name
+            })
+
+
+    # --------------------------------------------------------
+    # RETURN PROFILE
+    # --------------------------------------------------------
+
+    return {
+
+        "id": current_student.id,
+
+        "name": current_student.name,
+
+        "roll_number":
+            current_student.roll_number,
+
+        "class_id":
+            school_class.id,
+
+        "class_name":
+            school_class.name,
+
+        "section":
+            school_class.section,
+
+        "academic_year":
+            school_class.academic_year,
+
+        "subjects":
+            subjects
+    }
 
 
 # ============================================================
@@ -41,20 +148,27 @@ def get_student_profile(
     # --------------------------------------------------------
     # AUTHORIZED USERS
     # --------------------------------------------------------
-    # For now, ADMIN and TEACHER can view student profiles.
-    # Later we can add STUDENT login separately.
 
-    if current_user.role not in ["ADMIN", "TEACHER"]:
+    if current_user.role not in [
+        "ADMIN",
+        "TEACHER"
+    ]:
+
         raise HTTPException(
             status_code=403,
-            detail="You are not authorized to view student profiles"
+            detail=(
+                "You are not authorized "
+                "to view student profiles"
+            )
         )
+
 
     # --------------------------------------------------------
     # CLEAN ROLL NUMBER
     # --------------------------------------------------------
 
     roll_number = roll_number.strip()
+
 
     # --------------------------------------------------------
     # FIND STUDENT
@@ -63,18 +177,28 @@ def get_student_profile(
     student = (
         db.query(Student)
         .filter(
-            Student.school_id == current_user.school_id,
-            Student.roll_number == roll_number,
+            Student.school_id ==
+                current_user.school_id,
+
+            Student.roll_number ==
+                roll_number,
+
             Student.is_active == True
         )
         .first()
     )
 
+
     if not student:
+
         raise HTTPException(
             status_code=404,
-            detail=f"Student with roll number '{roll_number}' not found"
+            detail=(
+                f"Student with roll number "
+                f"'{roll_number}' not found"
+            )
         )
+
 
     # --------------------------------------------------------
     # FIND CLASS
@@ -84,61 +208,96 @@ def get_student_profile(
         db.query(Class)
         .filter(
             Class.id == student.class_id,
-            Class.school_id == current_user.school_id
+
+            Class.school_id ==
+                current_user.school_id
         )
         .first()
     )
 
+
     if not school_class:
+
         raise HTTPException(
             status_code=404,
             detail="Student class not found"
         )
 
+
     # --------------------------------------------------------
-    # GET SUBJECTS FOR CLASS
+    # GET SUBJECTS
     # --------------------------------------------------------
 
     class_subjects = (
         db.query(ClassSubject)
         .filter(
-            ClassSubject.class_id == school_class.id,
+            ClassSubject.class_id ==
+                school_class.id,
+
             ClassSubject.is_active == True
         )
         .all()
     )
 
+
     subjects = []
+
 
     for class_subject in class_subjects:
 
         subject = (
             db.query(Subject)
             .filter(
-                Subject.id == class_subject.subject_id,
-                Subject.school_id == current_user.school_id,
+                Subject.id ==
+                    class_subject.subject_id,
+
+                Subject.school_id ==
+                    current_user.school_id,
+
                 Subject.is_active == True
             )
             .first()
         )
 
+
         if subject:
+
             subjects.append({
-                "subject_id": subject.id,
-                "subject_name": subject.name
+                "subject_id":
+                    subject.id,
+
+                "subject_name":
+                    subject.name
             })
+
 
     # --------------------------------------------------------
     # RETURN PROFILE
     # --------------------------------------------------------
 
     return {
-        "id": student.id,
-        "name": student.name,
-        "roll_number": student.roll_number,
-        "class_id": school_class.id,
-        "class_name": school_class.name,
-        "section": school_class.section,
-        "academic_year": school_class.academic_year,
-        "subjects": subjects
+
+        "id":
+            student.id,
+
+        "name":
+            student.name,
+
+        "roll_number":
+            student.roll_number,
+
+        "class_id":
+            school_class.id,
+
+        "class_name":
+            school_class.name,
+
+        "section":
+            school_class.section,
+
+        "academic_year":
+            school_class.academic_year,
+
+        "subjects":
+            subjects
     }

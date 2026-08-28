@@ -1,8 +1,8 @@
-from pydantic import BaseModel, EmailStr
-
+from pydantic import BaseModel, EmailStr, Field
+from datetime import date
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
@@ -13,3 +13,11 @@ class LoginResponse(BaseModel):
     name: str
     role: str
     school_id: int
+
+class StudentLoginRequest(BaseModel):
+    school_code: str
+    name: str
+    roll_number: str
+    class_name: str
+    section: str
+    date_of_birth: date | None = None

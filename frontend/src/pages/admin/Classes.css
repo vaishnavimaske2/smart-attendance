@@ -1,0 +1,1096 @@
+/* ============================================================
+   CLASSES PAGE
+   PART 1 — MAIN LAYOUT + HEADER
+   ============================================================ */
+
+.admin-classes {
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.admin-classes .admin-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  margin-bottom: 26px;
+  padding: 24px 26px;
+
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    #f8fbff
+  );
+
+  border: 1px solid #e5eaf2;
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 24px rgba(31, 41, 55, 0.06);
+}
+
+
+.admin-classes .admin-module-label {
+  display: inline-block;
+
+  margin-bottom: 6px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+
+  color: #7c3aed;
+}
+
+
+.admin-classes .admin-module-header h1 {
+  margin: 0;
+
+  font-size: 30px;
+  line-height: 1.2;
+
+  font-weight: 750;
+
+  color: #172033;
+}
+
+
+.admin-classes .admin-module-header p {
+  margin: 8px 0 0;
+
+  font-size: 14px;
+  line-height: 1.6;
+
+  color: #718096;
+}
+
+
+/* ============================================================
+   PRIMARY BUTTON
+   ============================================================ */
+
+.admin-classes .admin-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 42px;
+
+  padding: 0 17px;
+
+  border: none;
+  border-radius: 11px;
+
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #6d28d9
+  );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 16px rgba(124, 58, 237, 0.20);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+
+.admin-classes .admin-primary-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 20px rgba(124, 58, 237, 0.27);
+}
+
+
+.admin-classes .admin-primary-button:active {
+  transform: translateY(0);
+}
+
+
+.admin-classes .admin-primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ============================================================
+   SUMMARY CARDS
+   ============================================================ */
+
+.admin-class-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 22px;
+}
+
+
+.admin-class-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  min-height: 92px;
+
+  padding: 18px 20px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e7ebf2;
+  border-radius: 16px;
+
+  box-shadow:
+    0 6px 20px rgba(31, 41, 55, 0.045);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.admin-class-summary-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 26px rgba(31, 41, 55, 0.08);
+}
+
+
+.admin-class-summary-card > svg {
+  width: 42px;
+  height: 42px;
+
+  padding: 10px;
+
+  box-sizing: border-box;
+
+  border-radius: 12px;
+
+  background: #f1edff;
+
+  color: #7c3aed;
+}
+
+
+.admin-class-summary-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+.admin-class-summary-card span {
+  font-size: 12px;
+  font-weight: 550;
+
+  color: #7a8496;
+}
+
+
+.admin-class-summary-card strong {
+  font-size: 24px;
+  line-height: 1;
+
+  color: #1c2535;
+}
+
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+
+.admin-class-toolbar {
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 18px;
+
+  padding: 14px;
+
+  background: #f8faff;
+
+  border: 1px solid #e8edf5;
+  border-radius: 16px;
+}
+
+
+/* ============================================================
+   SEARCH BOX
+   ============================================================ */
+
+.admin-classes .admin-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: min(100%, 440px);
+
+  min-height: 44px;
+
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #dfe5ee;
+  border-radius: 12px;
+
+  box-shadow:
+    0 3px 10px rgba(31, 41, 55, 0.035);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.admin-classes .admin-search-box:focus-within {
+  border-color: #a78bfa;
+
+  box-shadow:
+    0 0 0 3px rgba(124, 58, 237, 0.10);
+}
+
+
+.admin-classes .admin-search-box svg {
+  flex-shrink: 0;
+
+  color: #929caf;
+}
+
+
+.admin-classes .admin-search-box input {
+  width: 100%;
+
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-size: 14px;
+
+  color: #273142;
+}
+
+
+.admin-classes .admin-search-box input::placeholder {
+  color: #a0a8b7;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 850px) {
+
+  .admin-class-summary {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .admin-classes {
+    padding: 16px;
+  }
+
+
+  .admin-classes .admin-module-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    padding: 20px;
+  }
+
+
+  .admin-classes .admin-primary-button {
+    width: 100%;
+  }
+
+
+  .admin-class-toolbar {
+    padding: 10px;
+  }
+
+
+  .admin-classes .admin-search-box {
+    width: 100%;
+  }
+
+}
+
+/* ============================================================
+   CLASSES PAGE
+   PART 2 — TABLE CARD
+   ============================================================ */
+
+
+/* ============================================================
+   MAIN TABLE CARD
+   ============================================================ */
+
+.admin-classes-card {
+  width: 100%;
+
+  background: #ffffff;
+
+  border: 1px solid #e5eaf2;
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 8px 26px rgba(31, 41, 55, 0.055);
+}
+
+
+/* ============================================================
+   CARD HEADER
+   ============================================================ */
+
+.admin-classes-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 20px 22px;
+
+  background: #fbfcff;
+
+  border-bottom: 1px solid #edf0f5;
+}
+
+
+.admin-classes-card-header h2 {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #202a3a;
+}
+
+
+.admin-classes-card-header p {
+  margin: 5px 0 0;
+
+  font-size: 13px;
+
+  color: #7b8495;
+}
+
+
+/* ============================================================
+   RECORD COUNT
+   ============================================================ */
+
+.admin-classes .admin-record-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 30px;
+
+  padding: 0 11px;
+
+  border-radius: 999px;
+
+  background: #f1edff;
+
+  color: #6d28d9;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   TABLE WRAPPER
+   ============================================================ */
+
+.admin-classes-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+
+.admin-classes-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  min-width: 720px;
+}
+
+
+/* ============================================================
+   TABLE HEADER
+   ============================================================ */
+
+.admin-classes-table thead {
+  background: #f8f9fc;
+}
+
+
+.admin-classes-table th {
+  padding: 13px 18px;
+
+  border-bottom: 1px solid #e8ecf2;
+
+  text-align: left;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+
+  color: #7c8798;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   TABLE BODY
+   ============================================================ */
+
+.admin-classes-table td {
+  padding: 16px 18px;
+
+  border-bottom: 1px solid #edf0f4;
+
+  font-size: 14px;
+
+  color: #4d5869;
+
+  vertical-align: middle;
+}
+
+
+.admin-classes-table tbody tr {
+  transition:
+    background 0.16s ease;
+}
+
+
+.admin-classes-table tbody tr:hover {
+  background: #fafbff;
+}
+
+
+.admin-classes-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* ============================================================
+   CLASS NAME
+   ============================================================ */
+
+.admin-classes-table td:first-child strong {
+  display: inline-block;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  color: #202a3a;
+}
+
+
+/* ============================================================
+   SECTION BADGE
+   ============================================================ */
+
+.admin-class-section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 34px;
+  height: 30px;
+
+  padding: 0 10px;
+
+  border-radius: 9px;
+
+  background: #f3efff;
+
+  border: 1px solid #e6ddff;
+
+  color: #6d28d9;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+
+.admin-classes .admin-status-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.admin-classes .admin-status-status::before {
+  content: "";
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+}
+
+
+.admin-classes .admin-status-status.active {
+  background: #ecfdf5;
+
+  color: #15803d;
+}
+
+
+.admin-classes .admin-status-status.active::before {
+  background: #22c55e;
+}
+
+
+.admin-classes .admin-status-status.inactive {
+  background: #fff1f2;
+
+  color: #be123c;
+}
+
+
+.admin-classes .admin-status-status.inactive::before {
+  background: #f43f5e;
+}
+
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.admin-class-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  white-space: nowrap;
+}
+
+
+.admin-class-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  min-height: 34px;
+
+  padding: 0 10px;
+
+  border: 1px solid #e0e5ed;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #596579;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+
+.admin-class-actions button:hover {
+  background: #f6f3ff;
+
+  border-color: #d9ccff;
+
+  color: #6d28d9;
+
+  transform: translateY(-1px);
+}
+
+
+.admin-class-actions button:active {
+  transform: translateY(0);
+}
+
+
+.admin-class-actions button svg {
+  flex-shrink: 0;
+}
+
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.admin-classes .admin-table-empty {
+  min-height: 180px;
+
+  padding: 40px 20px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  text-align: center;
+
+  color: #8a94a5;
+}
+
+
+.admin-classes .admin-table-empty svg {
+  margin-bottom: 4px;
+
+  color: #a78bfa;
+}
+
+
+.admin-classes .admin-table-empty strong {
+  font-size: 15px;
+
+  color: #394456;
+}
+
+
+.admin-classes .admin-table-empty span {
+  font-size: 13px;
+
+  color: #8a94a5;
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 650px) {
+
+  .admin-classes-card-header {
+    align-items: flex-start;
+
+    padding: 17px;
+  }
+
+
+  .admin-classes-card-header h2 {
+    font-size: 16px;
+  }
+
+
+  .admin-classes-card-header p {
+    font-size: 12px;
+  }
+
+
+  .admin-classes-table th,
+  .admin-classes-table td {
+    padding: 13px 14px;
+  }
+
+
+  .admin-class-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+
+  .admin-class-actions button {
+    justify-content: flex-start;
+  }
+
+}
+
+/* ============================================================
+   CLASSES PAGE
+   PART 3 — ADD / EDIT FORM
+   ============================================================ */
+
+
+/* ============================================================
+   FORM CARD
+   ============================================================ */
+
+.admin-class-form-card {
+  width: 100%;
+  margin-bottom: 22px;
+  padding: 22px;
+
+  box-sizing: border-box;
+
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    #faf9ff
+  );
+
+  border: 1px solid #e5e0f7;
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 24px rgba(31, 41, 55, 0.06);
+}
+
+
+/* ============================================================
+   FORM HEADER
+   ============================================================ */
+
+.admin-class-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 20px;
+}
+
+
+.admin-class-form-header h2 {
+  margin: 0;
+
+  font-size: 19px;
+  font-weight: 700;
+
+  color: #202a3a;
+}
+
+
+.admin-class-form-header p {
+  margin: 6px 0 0;
+
+  font-size: 13px;
+
+  color: #7b8495;
+}
+
+
+/* ============================================================
+   CLOSE BUTTON
+   ============================================================ */
+
+.admin-class-form-header > button {
+  width: 34px;
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1px solid #e2e6ed;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #737e90;
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+
+.admin-class-form-header > button:hover {
+  background: #f6f3ff;
+
+  border-color: #d8ccff;
+
+  color: #6d28d9;
+}
+
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+.admin-class-form {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+
+/* ============================================================
+   FORM FIELD
+   ============================================================ */
+
+.admin-class-form .admin-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+
+.admin-class-form .admin-form-field label {
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #4b5567;
+}
+
+
+.admin-class-form .admin-form-field input {
+  width: 100%;
+  min-height: 44px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #dce2eb;
+  border-radius: 11px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #273142;
+
+  font-size: 14px;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+
+.admin-class-form .admin-form-field input:hover {
+  border-color: #cbd3df;
+}
+
+
+.admin-class-form .admin-form-field input:focus {
+  border-color: #a78bfa;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(124, 58, 237, 0.10);
+}
+
+
+.admin-class-form .admin-form-field input::placeholder {
+  color: #a1a9b7;
+}
+
+
+/* ============================================================
+   FORM ACTIONS
+   ============================================================ */
+
+.admin-class-form-actions {
+  grid-column: 1 / -1;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding-top: 4px;
+}
+
+
+/* ============================================================
+   SECONDARY BUTTON
+   ============================================================ */
+
+.admin-classes .admin-secondary-button {
+  min-height: 42px;
+
+  padding: 0 16px;
+
+  border: 1px solid #dce2eb;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #5d6879;
+
+  font-size: 13px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+
+.admin-classes .admin-secondary-button:hover {
+  background: #f8f9fc;
+
+  border-color: #cbd3df;
+
+  color: #303b4d;
+}
+
+
+/* ============================================================
+   FORM ERROR
+   ============================================================ */
+
+.admin-classes .admin-form-message-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 16px;
+  padding: 11px 13px;
+
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+
+  background: #fff1f2;
+
+  color: #be123c;
+
+  font-size: 13px;
+}
+
+
+/* ============================================================
+   SUCCESS MESSAGE
+   ============================================================ */
+
+.admin-classes .admin-form-message-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 16px;
+  padding: 11px 13px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+
+  background: #f0fdf4;
+
+  color: #15803d;
+
+  font-size: 13px;
+}
+
+
+/* ============================================================
+   DISABLED BUTTON
+   ============================================================ */
+
+.admin-class-form-actions button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 650px) {
+
+  .admin-class-form-card {
+    padding: 17px;
+  }
+
+
+  .admin-class-form {
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+  }
+
+
+  .admin-class-form-actions {
+    grid-column: auto;
+
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+
+  .admin-class-form-actions button {
+    width: 100%;
+  }
+
+}

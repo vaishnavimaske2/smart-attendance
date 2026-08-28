@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
+import os;
 from app.database.database import Base, engine
 from app.database.models import School, User, Class, Student, Attendance, StudentFace
 from app.routes.school import router as school_router
@@ -18,6 +19,9 @@ from app.routes.class_teachers import router as class_teachers_router
 from app.routes.teacher_profile import router as teacher_profile_router
 from app.routes.student_profile import router as student_profile_router
 from app.routes.teacher_students import router as teacher_students_router
+from app.routes.dashboard import router as dashboard_router
+from app.routes.admin_dashboard import router as admin_dashboard_router
+from app.routes.admin_students import router as admin_students_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,6 +30,32 @@ app = FastAPI(
     title="SmartAttend API",
     description="Automated Student Attendance System",
     version="1.0.0"
+)
+
+# ============================================================
+# CORS
+# ============================================================
+
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:5173"
+)
+
+
+app.add_middleware(
+    CORSMiddleware,
+
+    allow_origins=[
+        FRONTEND_URL,
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+
+    allow_credentials=True,
+
+    allow_methods=["*"],
+
+    allow_headers=["*"],
 )
 
 
@@ -45,6 +75,9 @@ app.include_router(face_router)
 app.include_router(recognition_router)
 app.include_router(attendance_report_router)
 app.include_router(teacher_students_router)
+app.include_router(dashboard_router)
+app.include_router(admin_dashboard_router)
+app.include_router(admin_students_router)
 
 @app.get("/")
 def root():

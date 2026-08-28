@@ -1,0 +1,614 @@
+/* ============================================================
+   TEACHER ASSIGNMENTS
+   ============================================================ */
+
+.teacher-assignments {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 36px 60px;
+  box-sizing: border-box;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.teacher-assignment-header {
+  margin-bottom: 28px;
+}
+
+.teacher-assignment-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #6366f1;
+}
+
+.teacher-assignment-header h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #172033;
+}
+
+.teacher-assignment-header p {
+  margin: 9px 0 0;
+  font-size: 15px;
+  color: #718096;
+}
+
+
+/* ============================================================
+   MESSAGES
+   ============================================================ */
+
+.teacher-assignment-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  animation: teacherMessageIn 0.25s ease;
+}
+
+.teacher-assignment-message span {
+  flex: 1;
+}
+
+.teacher-assignment-message button {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.teacher-assignment-message.success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.teacher-assignment-message.success button {
+  color: #166534;
+}
+
+.teacher-assignment-message.success button:hover {
+  background: #dcfce7;
+}
+
+.teacher-assignment-message.error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.teacher-assignment-message.error button {
+  color: #b91c1c;
+}
+
+.teacher-assignment-message.error button:hover {
+  background: #fee2e2;
+}
+
+@keyframes teacherMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ============================================================
+   CARD
+   ============================================================ */
+
+.teacher-assignment-card {
+  background: #ffffff;
+  border: 1px solid #e8ecf3;
+  border-radius: 18px;
+  margin-bottom: 24px;
+  padding: 28px;
+  box-shadow:
+    0 8px 30px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.teacher-assignment-card:hover {
+  transform: translateY(-2px);
+  border-color: #d9ddff;
+  box-shadow:
+    0 14px 38px rgba(15, 23, 42, 0.09);
+}
+
+
+/* ============================================================
+   CARD HEADER
+   ============================================================ */
+
+.teacher-assignment-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.teacher-assignment-card-header > svg {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  color: #4f46e5;
+  background: #eef2ff;
+}
+
+.teacher-assignment-card-header h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 750;
+  color: #1e293b;
+}
+
+.teacher-assignment-card-header p {
+  max-width: 700px;
+  margin: 7px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #7b8798;
+}
+
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+.teacher-assignment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+
+/* ============================================================
+   FORM FIELD
+   ============================================================ */
+
+.teacher-assignment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacher-assignment-field label {
+  font-size: 13px;
+  font-weight: 750;
+  color: #334155;
+}
+
+.teacher-assignment-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 42px 0 14px;
+  box-sizing: border-box;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 1px solid #d9deea;
+  border-radius: 11px;
+
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #64748b 50%),
+    linear-gradient(135deg, #64748b 50%, transparent 50%);
+  background-position:
+    calc(100% - 19px) 20px,
+    calc(100% - 13px) 20px;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 550;
+
+  outline: none;
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.teacher-assignment-field select:hover {
+  border-color: #a5b4fc;
+  background-color: #fafaff;
+}
+
+.teacher-assignment-field select:focus {
+  border-color: #6366f1;
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.teacher-assignment-field select:disabled {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.teacher-assignment-field select option {
+  padding: 10px;
+  color: #1e293b;
+  background: #ffffff;
+}
+
+.teacher-assignment-field small {
+  margin-top: -1px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8a94a6;
+}
+
+
+/* ============================================================
+   CHECKBOX
+   ============================================================ */
+
+.teacher-assignment-checkbox {
+  grid-column: 1 / -1;
+
+  padding: 17px 18px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #fafbff;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.teacher-assignment-checkbox:hover {
+  border-color: #c7d2fe;
+  background: #f8f9ff;
+}
+
+.teacher-assignment-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+
+  cursor: pointer;
+}
+
+.teacher-assignment-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+
+  accent-color: #4f46e5;
+
+  cursor: pointer;
+}
+
+.teacher-assignment-checkbox p {
+  margin: 7px 0 0 29px;
+
+  font-size: 12px;
+  line-height: 1.5;
+  color: #7b8798;
+}
+
+
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
+
+.teacher-assignment-actions {
+  grid-column: 1 / -1;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+
+  padding-top: 6px;
+}
+
+
+/* ------------------------------------------------------------
+   SECONDARY BUTTON
+   ------------------------------------------------------------ */
+
+.teacher-assignment-secondary {
+  min-height: 45px;
+  padding: 0 19px;
+
+  border: 1px solid #d8deea;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #475569;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.teacher-assignment-secondary:hover {
+  background: #f8fafc;
+  border-color: #c4cad7;
+  transform: translateY(-1px);
+}
+
+.teacher-assignment-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ------------------------------------------------------------
+   PRIMARY BUTTON
+   ------------------------------------------------------------ */
+
+.teacher-assignment-primary {
+  min-height: 45px;
+  padding: 0 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: linear-gradient(
+    135deg,
+    #6366f1,
+    #4f46e5
+  );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 14px rgba(79, 70, 229, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.teacher-assignment-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+
+  box-shadow:
+    0 8px 20px rgba(79, 70, 229, 0.32);
+}
+
+.teacher-assignment-primary:active {
+  transform: translateY(0);
+}
+
+.teacher-assignment-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+
+/* ============================================================
+   HOW IT WORKS
+   ============================================================ */
+
+.teacher-assignment-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.teacher-assignment-guide-item {
+  padding: 20px;
+
+  border: 1px solid #e7eaf1;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    #fafbff
+  );
+
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.teacher-assignment-guide-item:hover {
+  transform: translateY(-3px);
+
+  border-color: #c7d2fe;
+
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.teacher-assignment-guide-item strong {
+  display: block;
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  color: #334155;
+}
+
+.teacher-assignment-guide-item p {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 1.65;
+
+  color: #7b8798;
+}
+
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.teacher-assignment-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 220px;
+  padding: 30px;
+
+  box-sizing: border-box;
+
+  border: 1px dashed #d5dbe7;
+  border-radius: 16px;
+
+  background: #fafbfe;
+
+  text-align: center;
+}
+
+.teacher-assignment-empty svg {
+  margin-bottom: 12px;
+  color: #6366f1;
+}
+
+.teacher-assignment-empty strong {
+  font-size: 16px;
+  color: #334155;
+}
+
+.teacher-assignment-empty span {
+  max-width: 450px;
+  margin-top: 6px;
+
+  font-size: 13px;
+  line-height: 1.5;
+
+  color: #8a94a6;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .teacher-assignments {
+    padding: 26px 22px 50px;
+  }
+
+  .teacher-assignment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-assignment-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-assignment-checkbox,
+  .teacher-assignment-actions {
+    grid-column: auto;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .teacher-assignments {
+    padding: 20px 15px 40px;
+  }
+
+  .teacher-assignment-header h1 {
+    font-size: 26px;
+  }
+
+  .teacher-assignment-card {
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  .teacher-assignment-card-header {
+    gap: 12px;
+  }
+
+  .teacher-assignment-card-header h2 {
+    font-size: 19px;
+  }
+
+  .teacher-assignment-card-header > svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .teacher-assignment-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .teacher-assignment-primary,
+  .teacher-assignment-secondary {
+    width: 100%;
+  }
+}

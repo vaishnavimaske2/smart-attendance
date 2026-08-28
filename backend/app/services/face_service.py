@@ -489,17 +489,23 @@ def find_matching_student(
     threshold=MATCH_THRESHOLD
 ):
     """
-    Compare one face embedding with all registered students.
+    Compare one detected face against all registered students.
 
-    Uses cosine similarity.
+    Each student can have either:
 
-    Returns:
+    1. One old embedding:
+       [0.1, 0.2, 0.3, ...]
 
-        (student, similarity)
+    OR
 
-    If no sufficiently similar student exists:
+    2. Multiple embeddings:
+       [
+           [0.1, 0.2, 0.3, ...],
+           [0.2, 0.3, 0.4, ...],
+           [0.3, 0.4, 0.5, ...]
+       ]
 
-        (None, best_similarity)
+    The best similarity across all photos is used.
     """
 
     best_student = None
@@ -507,17 +513,13 @@ def find_matching_student(
     best_similarity = -1.0
 
     # --------------------------------------------------------
-    # Convert input embedding
+    # NORMALIZE INPUT EMBEDDING
     # --------------------------------------------------------
 
     input_embedding = np.array(
         embedding,
         dtype=np.float32
     )
-
-    # --------------------------------------------------------
-    # Normalize input embedding
-    # --------------------------------------------------------
 
     input_norm = np.linalg.norm(
         input_embedding
@@ -533,67 +535,113 @@ def find_matching_student(
     )
 
     # --------------------------------------------------------
-    # Compare with every student
+    # CHECK EVERY STUDENT
     # --------------------------------------------------------
 
     for student in students:
 
-        # Student has no registered face
         if student.face_embedding is None:
-
             continue
 
         try:
 
-            student_embedding = np.array(
-                student.face_embedding,
-                dtype=np.float32
+            stored_embeddings = (
+                student.face_embedding
             )
 
-        except Exception:
+            # =================================================
+            # OLD FORMAT
+            # =================================================
+            #
+            # One embedding:
+            #
+            # [0.1, 0.2, 0.3, ...]
+            #
+            # =================================================
 
-            continue
+            if (
+                isinstance(
+                    stored_embeddings,
+                    list
+                )
+                and
+                stored_embeddings
+                and
+                isinstance(
+                    stored_embeddings[0],
+                    (int, float)
+                )
+            ):
 
-        # ----------------------------------------------------
-        # Normalize stored embedding
-        # ----------------------------------------------------
+                stored_embeddings = [
+                    stored_embeddings
+                ]
 
-        student_norm = np.linalg.norm(
-            student_embedding
-        )
+            # =================================================
+            # NEW FORMAT
+            # =================================================
+            #
+            # Multiple embeddings:
+            #
+            # [
+            #   [...],
+            #   [...],
+            #   [...]
+            # ]
+            #
+            # =================================================
 
-        if student_norm == 0:
+            for stored_embedding in stored_embeddings:
 
-            continue
+                student_embedding = np.array(
+                    stored_embedding,
+                    dtype=np.float32
+                )
 
-        student_embedding = (
-            student_embedding /
-            student_norm
-        )
+                student_norm = np.linalg.norm(
+                    student_embedding
+                )
 
-        # ----------------------------------------------------
-        # Cosine similarity
-        # ----------------------------------------------------
+                if student_norm == 0:
+                    continue
 
-        similarity = float(
-            np.dot(
-                input_embedding,
-                student_embedding
+                student_embedding = (
+                    student_embedding /
+                    student_norm
+                )
+
+                # ------------------------------------------------
+                # COSINE SIMILARITY
+                # ------------------------------------------------
+
+                similarity = float(
+                    np.dot(
+                        input_embedding,
+                        student_embedding
+                    )
+                )
+
+                # ------------------------------------------------
+                # KEEP BEST PHOTO MATCH
+                # ------------------------------------------------
+
+                if similarity > best_similarity:
+
+                    best_similarity = similarity
+
+                    best_student = student
+
+        except Exception as e:
+
+            print(
+                "STUDENT EMBEDDING ERROR:",
+                repr(e)
             )
-        )
 
-        # ----------------------------------------------------
-        # Keep best match
-        # ----------------------------------------------------
-
-        if similarity > best_similarity:
-
-            best_similarity = similarity
-
-            best_student = student
+            continue
 
     # --------------------------------------------------------
-    # Reject weak match
+    # REJECT WEAK MATCH
     # --------------------------------------------------------
 
     if best_similarity < threshold:
