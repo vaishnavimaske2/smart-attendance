@@ -6,11 +6,13 @@ import {
   UserCheck,
   ClipboardCheck,
   BarChart3,
-  TrendingUp,
+  // TrendingUp,
   RefreshCw,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
+
+import { useNavigate } from "react-router-dom";
 
 // ============================================================
 // TYPES
@@ -42,6 +44,8 @@ function AdminDashboard() {
     {/* ================================================== */}
       {/* LOADING STATE */}
       {/* ================================================== */}
+
+      const navigate = useNavigate();
 
       const [dashboardData, setDashboardData] =
         useState<DashboardData | null>(null);
@@ -466,97 +470,223 @@ function AdminDashboard() {
         </div>
 
 
-        {/* QUICK OVERVIEW */}
+        {/* ================================================== */}
+{/* QUICK SHORTCUTS */}
+{/* ================================================== */}
 
-        <div className="admin-dashboard-card">
+<div className="admin-dashboard-card">
 
-          <div className="admin-dashboard-card-header">
+  <div className="admin-dashboard-card-header">
 
-            <div>
+    <div>
 
-              <h2>
-                Quick Overview
-              </h2>
+      <h2>
+        Quick Shortcuts
+      </h2>
 
-              <p>
-                School management summary
-              </p>
+      <p>
+        Quickly access the main administration sections.
+      </p>
 
-            </div>
+    </div>
 
-            <TrendingUp size={21} />
+    <BarChart3 size={21} />
 
-          </div>
-
-
-          <div className="admin-quick-list">
-
-
-            <div className="admin-quick-item">
-
-              <div className="admin-quick-icon">
-                <UserCheck size={18} />
-              </div>
-
-              <div>
-
-                <strong>
-                  Teacher Assignments
-                </strong>
-
-                <span>
-                  Manage teacher class and subject assignments
-                </span>
-
-              </div>
-
-            </div>
+  </div>
 
 
-            <div className="admin-quick-item">
-
-              <div className="admin-quick-icon">
-                <ClipboardCheck size={18} />
-              </div>
-
-              <div>
-
-                <strong>
-                  Attendance
-                </strong>
-
-                <span>
-                  Review school-wide attendance records
-                </span>
-
-              </div>
-
-            </div>
+  <div className="admin-quick-shortcuts">
 
 
-            <div className="admin-quick-item">
+    {/* ================================================== */}
+    {/* TEACHERS */}
+    {/* ================================================== */}
 
-              <div className="admin-quick-icon">
-                <BarChart3 size={18} />
-              </div>
+    <button
+      type="button"
+      className="admin-quick-shortcut"
+      onClick={() =>
+        navigate("/teachers")
+      }
+    >
 
-              <div>
+      <div className="admin-quick-shortcut-icon">
+        <Users size={21} />
+      </div>
 
-                <strong>
-                  Reports
-                </strong>
+      <div className="admin-quick-shortcut-content">
 
-                <span>
-                  View attendance and school reports
-                </span>
+        <strong>
+          Teachers
+        </strong>
 
-              </div>
+        <span>
+          Manage teacher accounts and access.
+        </span>
 
-            </div>
+      </div>
 
-          </div>
+    </button>
 
-        </div>
+
+    {/* ================================================== */}
+    {/* STUDENTS */}
+    {/* ================================================== */}
+
+    <button
+      type="button"
+      className="admin-quick-shortcut"
+      onClick={() =>
+        navigate("/students")
+      }
+    >
+
+      <div className="admin-quick-shortcut-icon">
+        <GraduationCap size={21} />
+      </div>
+
+      <div className="admin-quick-shortcut-content">
+
+        <strong>
+          Students
+        </strong>
+
+        <span>
+          Manage student records and enrollment.
+        </span>
+
+      </div>
+
+    </button>
+
+
+    {/* ================================================== */}
+    {/* CLASSES */}
+    {/* ================================================== */}
+
+    <button
+      type="button"
+      className="admin-quick-shortcut"
+      onClick={() =>
+        navigate("/classes")
+      }
+    >
+
+      <div className="admin-quick-shortcut-icon">
+        <Building2 size={21} />
+      </div>
+
+      <div className="admin-quick-shortcut-content">
+
+        <strong>
+          Classes
+        </strong>
+
+        <span>
+          Manage classes and sections.
+        </span>
+
+      </div>
+
+    </button>
+
+
+    {/* ================================================== */}
+    {/* SUBJECTS */}
+    {/* ================================================== */}
+
+    <button
+      type="button"
+      className="admin-quick-shortcut"
+      onClick={() =>
+        navigate("/subjects")
+      }
+    >
+
+      <div className="admin-quick-shortcut-icon">
+        <BookOpen size={21} />
+      </div>
+
+      <div className="admin-quick-shortcut-content">
+
+        <strong>
+          Subjects
+        </strong>
+
+        <span>
+          Manage school subjects.
+        </span>
+
+      </div>
+
+    </button>
+
+
+    {/* ================================================== */}
+    {/* TEACHER ASSIGNMENTS */}
+    {/* ================================================== */}
+
+    <button
+      type="button"
+      className="admin-quick-shortcut"
+      onClick={() =>
+        navigate("/teacher-assignments")
+      }
+    >
+
+      <div className="admin-quick-shortcut-icon">
+        <UserCheck size={21} />
+      </div>
+
+      <div className="admin-quick-shortcut-content">
+
+        <strong>
+          Teacher Assignments
+        </strong>
+
+        <span>
+          Assign teachers to classes and subjects.
+        </span>
+
+      </div>
+
+    </button>
+
+
+    {/* ================================================== */}
+    {/* REPORTS */}
+    {/* ================================================== */}
+
+    <button
+      type="button"
+      className="admin-quick-shortcut"
+      onClick={() =>
+        navigate("/records")
+      }
+    >
+
+      <div className="admin-quick-shortcut-icon">
+        <BarChart3 size={21} />
+      </div>
+
+      <div className="admin-quick-shortcut-content">
+
+        <strong>
+          Reports
+        </strong>
+
+        <span>
+          View attendance and school reports.
+        </span>
+
+      </div>
+
+    </button>
+
+
+  </div>
+
+</div>
 
       </div>
       {/* ================================================== */}

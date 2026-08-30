@@ -1,15 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
 .venv/
 venv/
-**/venv/
-__pycache__/
-*.pyc
 
+# Environment variables
 .env
-.env.*
-!.env.example
+*.env
 
+# Node
 node_modules/
-dist/
-build/
+frontend/node_modules/
 
-*.log
+# Build
+dist/
+frontend/dist/
+
+# Python cache
+.pytest_cache/
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

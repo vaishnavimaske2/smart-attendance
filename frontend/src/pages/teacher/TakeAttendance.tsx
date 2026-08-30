@@ -102,6 +102,28 @@ function TakeAttendance() {
   const fileInputRef =
     useRef<HTMLInputElement | null>(null);
 
+  const cameraInputRef =
+    useRef<HTMLInputElement | null>(null);
+
+  const [showPhotoOptions, setShowPhotoOptions] =
+    useState(false);
+
+  // ==========================================================
+// LIVE CAMERA
+// ==========================================================
+
+const videoRef =
+  useRef<HTMLVideoElement | null>(null);
+
+const canvasRef =
+  useRef<HTMLCanvasElement | null>(null);
+
+const [showCamera, setShowCamera] =
+  useState(false);
+
+const [cameraStream, setCameraStream] =
+  useState<MediaStream | null>(null);
+
 
   // ==========================================================
   // ATTENDANCE RESULT
@@ -337,6 +359,262 @@ function TakeAttendance() {
     }
 
   }
+
+  // ==========================================================
+// OPEN LIVE CAMERA
+// ==========================================================
+
+// async function openCamera() {
+
+//   setError("");
+
+//   setShowPhotoOptions(false);
+
+//   if (photos.length >= 6) {
+
+//     setError(
+//       "You can upload a maximum of 6 photos."
+//     );
+
+//     return;
+
+//   }
+
+//   try {
+
+//     if (!navigator.mediaDevices?.getUserMedia) {
+
+//       setError(
+//         "Camera access is not supported on this device or browser."
+//       );
+
+//       return;
+
+//     }
+
+//     const stream =
+//       await navigator.mediaDevices.getUserMedia({
+//         video: {
+//           facingMode: {
+//             ideal: "environment",
+//           },
+//         },
+//         audio: false,
+//       });
+
+//     setCameraStream(stream);
+
+//     setShowCamera(true);
+
+//   } catch (error) {
+
+//     console.error(
+//       "Camera error:",
+//       error
+//     );
+
+//     setError(
+//       "Unable to access the camera. Please allow camera permission or choose a photo from your gallery."
+//     );
+
+//   }
+
+// }
+
+
+// ==========================================================
+// CLOSE LIVE CAMERA
+// ==========================================================
+
+function closeCamera() {
+
+  if (cameraStream) {
+
+    cameraStream
+      .getTracks()
+      .forEach(
+        (track) =>
+          track.stop()
+      );
+
+  }
+
+  setCameraStream(null);
+
+  setShowCamera(false);
+
+}
+
+
+// ==========================================================
+// CONNECT CAMERA STREAM TO VIDEO
+// ==========================================================
+
+useEffect(() => {
+
+  if (
+    showCamera &&
+    videoRef.current &&
+    cameraStream
+  ) {
+
+    videoRef.current.srcObject =
+      cameraStream;
+
+    videoRef.current.play().catch(
+      () => {}
+    );
+
+  }
+
+}, [
+  showCamera,
+  cameraStream,
+]);
+
+// ==========================================================
+// CLEANUP CAMERA
+// ==========================================================
+
+useEffect(() => {
+
+  return () => {
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(
+          (track) =>
+            track.stop()
+        );
+
+    }
+
+  };
+
+}, [cameraStream]);
+
+
+// ==========================================================
+// CAPTURE PHOTO FROM CAMERA
+// ==========================================================
+
+function captureCameraPhoto() {
+
+  if (!videoRef.current) {
+
+    setError(
+      "Camera is not ready yet."
+    );
+
+    return;
+
+  }
+
+  if (photos.length >= 6) {
+
+    setError(
+      "You can upload a maximum of 6 photos."
+    );
+
+    closeCamera();
+
+    return;
+
+  }
+
+
+  const video =
+    videoRef.current;
+
+
+  const canvas =
+    canvasRef.current ||
+    document.createElement(
+      "canvas"
+    );
+
+
+  canvas.width =
+    video.videoWidth;
+
+  canvas.height =
+    video.videoHeight;
+
+
+  const context =
+    canvas.getContext("2d");
+
+
+  if (!context) {
+
+    setError(
+      "Unable to capture the photo."
+    );
+
+    return;
+
+  }
+
+
+  context.drawImage(
+    video,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+  canvas.toBlob(
+    (blob) => {
+
+      if (!blob) {
+
+        setError(
+          "Unable to create the captured photo."
+        );
+
+        return;
+
+      }
+
+
+      const file =
+        new File(
+          [
+            blob
+          ],
+          `camera-photo-${Date.now()}.jpg`,
+          {
+            type:
+              "image/jpeg",
+          }
+        );
+
+
+      const dataTransfer =
+        new DataTransfer();
+
+      dataTransfer.items.add(
+        file
+      );
+
+
+      handlePhotoSelection(
+        dataTransfer.files
+      );
+
+
+      closeCamera();
+
+    },
+    "image/jpeg",
+    0.9
+  );
+
+}
 
 
   // ==========================================================
@@ -743,6 +1021,8 @@ function TakeAttendance() {
       {/* CLASSROOM PHOTOS */}
       {/* ==================================================== */}
 
+
+
       <section className="teacher-attendance-card">
 
         <div className="teacher-attendance-card-title">
@@ -821,7 +1101,7 @@ function TakeAttendance() {
               type="button"
               className="teacher-add-photo"
               onClick={() =>
-                fileInputRef.current?.click()
+                setShowPhotoOptions(true)
               }
             >
 
@@ -857,6 +1137,159 @@ function TakeAttendance() {
             )
           }
         />
+
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={(event) => {
+            handlePhotoSelection(event.target.files);
+            setShowPhotoOptions(false);
+          }}
+        />
+
+        {/* ================================================== */}
+{/* LIVE CAMERA */}
+{/* ================================================== */}
+
+{showCamera && (
+
+  <div
+    style={{
+      marginTop: "16px",
+      width: "100%",
+    }}
+  >
+
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted
+      style={{
+        width: "100%",
+        maxWidth: "700px",
+        borderRadius: "12px",
+        display: "block",
+      }}
+    />
+
+    <canvas
+      ref={canvasRef}
+      hidden
+    />
+
+    <div
+      style={{
+        marginTop: "12px",
+        display: "flex",
+        gap: "12px",
+        flexWrap: "wrap",
+      }}
+    >
+
+      <button
+        type="button"
+        className="student-primary-button"
+        onClick={
+          captureCameraPhoto
+        }
+      >
+
+        <Camera size={18} />
+
+        Capture Photo
+
+      </button>
+
+
+      <button
+        type="button"
+        className="student-secondary-button"
+        onClick={
+          closeCamera
+        }
+      >
+
+        <X size={18} />
+
+        Cancel
+
+      </button>
+
+    </div>
+
+  </div>
+
+)}
+
+        {showPhotoOptions && (
+
+          <div className="teacher-photo-options">
+
+            {/* TAKE PHOTO */}
+
+            <button
+              type="button"
+              className="student-primary-button"
+              onClick={() => {
+
+                setShowPhotoOptions(false);
+
+                cameraInputRef.current?.click();
+
+              }}
+            >
+
+              <Camera size={18} />
+
+              Take Photo
+
+            </button>
+
+
+            {/* GALLERY */}
+
+            <button
+              type="button"
+              className="student-secondary-button"
+              onClick={() => {
+
+                setShowPhotoOptions(false);
+
+                fileInputRef.current?.click();
+
+              }}
+            >
+
+              <ImagePlus size={18} />
+
+              Choose from Gallery
+
+            </button>
+
+
+            {/* CANCEL */}
+
+            <button
+              type="button"
+              className="student-secondary-button"
+              onClick={() =>
+                setShowPhotoOptions(false)
+              }
+            >
+
+              <X size={18} />
+
+              Cancel
+
+            </button>
+
+          </div>
+
+        )}
 
 
         {/* PHOTO FOOTER */}

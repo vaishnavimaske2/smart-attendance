@@ -62,7 +62,6 @@ def get_my_student_profile(
             detail="Student class not found"
         )
 
-
     # --------------------------------------------------------
     # GET SUBJECTS
     # --------------------------------------------------------
@@ -76,9 +75,7 @@ def get_my_student_profile(
         .all()
     )
 
-
     subjects = []
-
 
     for class_subject in class_subjects:
 
@@ -92,7 +89,6 @@ def get_my_student_profile(
             .first()
         )
 
-
         if subject:
 
             subjects.append({
@@ -100,34 +96,30 @@ def get_my_student_profile(
                 "subject_name": subject.name
             })
 
-
     # --------------------------------------------------------
     # RETURN PROFILE
     # --------------------------------------------------------
 
     return {
-
         "id": current_student.id,
 
         "name": current_student.name,
 
-        "roll_number":
-            current_student.roll_number,
+        "roll_number": current_student.roll_number,
 
-        "class_id":
-            school_class.id,
+        "class_id": school_class.id,
 
-        "class_name":
-            school_class.name,
+        "class_name": school_class.name,
 
-        "section":
-            school_class.section,
+        "section": school_class.section,
 
-        "academic_year":
-            school_class.academic_year,
+        "academic_year": school_class.academic_year,
 
-        "subjects":
-            subjects
+        "date_of_birth": current_student.date_of_birth,
+
+        "gender": current_student.gender,
+
+        "subjects": subjects
     }
 
 
@@ -162,13 +154,11 @@ def get_student_profile(
             )
         )
 
-
     # --------------------------------------------------------
     # CLEAN ROLL NUMBER
     # --------------------------------------------------------
 
     roll_number = roll_number.strip()
-
 
     # --------------------------------------------------------
     # FIND STUDENT
@@ -177,17 +167,12 @@ def get_student_profile(
     student = (
         db.query(Student)
         .filter(
-            Student.school_id ==
-                current_user.school_id,
-
-            Student.roll_number ==
-                roll_number,
-
+            Student.school_id == current_user.school_id,
+            Student.roll_number == roll_number,
             Student.is_active == True
         )
         .first()
     )
-
 
     if not student:
 
@@ -199,7 +184,6 @@ def get_student_profile(
             )
         )
 
-
     # --------------------------------------------------------
     # FIND CLASS
     # --------------------------------------------------------
@@ -208,13 +192,10 @@ def get_student_profile(
         db.query(Class)
         .filter(
             Class.id == student.class_id,
-
-            Class.school_id ==
-                current_user.school_id
+            Class.school_id == current_user.school_id
         )
         .first()
     )
-
 
     if not school_class:
 
@@ -223,7 +204,6 @@ def get_student_profile(
             detail="Student class not found"
         )
 
-
     # --------------------------------------------------------
     # GET SUBJECTS
     # --------------------------------------------------------
@@ -231,73 +211,55 @@ def get_student_profile(
     class_subjects = (
         db.query(ClassSubject)
         .filter(
-            ClassSubject.class_id ==
-                school_class.id,
-
+            ClassSubject.class_id == school_class.id,
             ClassSubject.is_active == True
         )
         .all()
     )
 
-
     subjects = []
-
 
     for class_subject in class_subjects:
 
         subject = (
             db.query(Subject)
             .filter(
-                Subject.id ==
-                    class_subject.subject_id,
-
-                Subject.school_id ==
-                    current_user.school_id,
-
+                Subject.id == class_subject.subject_id,
+                Subject.school_id == current_user.school_id,
                 Subject.is_active == True
             )
             .first()
         )
 
-
         if subject:
 
             subjects.append({
-                "subject_id":
-                    subject.id,
-
-                "subject_name":
-                    subject.name
+                "subject_id": subject.id,
+                "subject_name": subject.name
             })
-
 
     # --------------------------------------------------------
     # RETURN PROFILE
     # --------------------------------------------------------
 
     return {
+        "id": student.id,
 
-        "id":
-            student.id,
+        "name": student.name,
 
-        "name":
-            student.name,
+        "roll_number": student.roll_number,
 
-        "roll_number":
-            student.roll_number,
+        "class_id": school_class.id,
 
-        "class_id":
-            school_class.id,
+        "class_name": school_class.name,
 
-        "class_name":
-            school_class.name,
+        "section": school_class.section,
 
-        "section":
-            school_class.section,
+        "academic_year": school_class.academic_year,
 
-        "academic_year":
-            school_class.academic_year,
+        "date_of_birth": student.date_of_birth,
 
-        "subjects":
-            subjects
+        "gender": student.gender,
+
+        "subjects": subjects
     }

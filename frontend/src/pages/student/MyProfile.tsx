@@ -12,22 +12,61 @@ import {
 import { apiRequest } from "../../services/api";
 
 
+// ============================================================
+// STUDENT PROFILE TYPE
+// ============================================================
+
 interface StudentProfile {
   id: number;
+
   name: string;
+
   roll_number: string;
+
   class_id: number;
+
   class_name: string;
+
   section: string;
+
   academic_year: string;
+
   date_of_birth?: string | null;
+
   gender?: string | null;
+
   subjects: {
     subject_id: number;
     subject_name: string;
   }[];
 }
 
+
+// ============================================================
+// FORMAT DATE
+// ============================================================
+
+const formatDate = (
+  dateValue?: string | null
+): string => {
+
+  if (!dateValue) {
+    return "Not available";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return dateValue;
+  }
+
+  return date.toLocaleDateString();
+};
+
+
+// ============================================================
+// MY PROFILE
+// ============================================================
 
 function MyProfile() {
 
@@ -41,20 +80,68 @@ function MyProfile() {
     useState("");
 
 
+  // ==========================================================
+  // LOAD PROFILE
+  // ==========================================================
+
   useEffect(() => {
 
     async function loadProfile() {
 
       try {
 
+        setLoading(true);
+
+        setError("");
+
+
         const data =
           await apiRequest(
             "/api/student-profile/me"
           );
 
-        setProfile(data);
+
+        console.log(
+          "Student profile API response:",
+          data
+        );
+
+
+        /*
+         * Some APIs return the profile directly:
+         *
+         * {
+         *   id: 1,
+         *   name: "...",
+         *   gender: "Male",
+         *   date_of_birth: "2005-01-01"
+         * }
+         *
+         * Others return:
+         *
+         * {
+         *   profile: {
+         *     ...
+         *   }
+         * }
+         *
+         * Handle both.
+         */
+
+        const profileData =
+          data?.profile ?? data;
+
+
+        setProfile(
+          profileData
+        );
 
       } catch (error) {
+
+        console.error(
+          "Error loading student profile:",
+          error
+        );
 
         setError(
           error instanceof Error
@@ -70,10 +157,15 @@ function MyProfile() {
 
     }
 
+
     loadProfile();
 
   }, []);
 
+
+  // ==========================================================
+  // LOADING
+  // ==========================================================
 
   if (loading) {
 
@@ -86,6 +178,10 @@ function MyProfile() {
   }
 
 
+  // ==========================================================
+  // ERROR
+  // ==========================================================
+
   if (error) {
 
     return (
@@ -97,20 +193,42 @@ function MyProfile() {
   }
 
 
+  // ==========================================================
+  // NO PROFILE
+  // ==========================================================
+
   if (!profile) {
-    return null;
+
+    return (
+      <div className="student-module-error">
+        Student profile not found.
+      </div>
+    );
+
   }
 
+
+  // ==========================================================
+  // PAGE
+  // ==========================================================
 
   return (
 
     <div className="student-module-page">
 
+
+      {/* ================================================== */}
+      {/* HEADER */}
+      {/* ================================================== */}
+
       <div className="student-module-header">
 
         <div className="student-module-icon">
+
           <UserRound size={26} />
+
         </div>
+
 
         <div>
 
@@ -127,15 +245,19 @@ function MyProfile() {
       </div>
 
 
+      {/* ================================================== */}
       {/* PROFILE HEADER */}
+      {/* ================================================== */}
 
       <section className="student-profile-card">
 
         <div className="student-profile-avatar">
 
           {profile.name
-            .charAt(0)
-            .toUpperCase()
+            ? profile.name
+                .charAt(0)
+                .toUpperCase()
+            : "S"
           }
 
         </div>
@@ -144,11 +266,12 @@ function MyProfile() {
         <div>
 
           <h2>
-            {profile.name}
+            {profile.name || "Student"}
           </h2>
 
           <p>
-            Student • {profile.class_name}
+            Student •{" "}
+            {profile.class_name || "Class not available"}
           </p>
 
         </div>
@@ -156,10 +279,16 @@ function MyProfile() {
       </section>
 
 
+      {/* ================================================== */}
       {/* DETAILS */}
+      {/* ================================================== */}
 
       <section className="student-profile-grid">
 
+
+        {/* ================================================= */}
+        {/* ROLL NUMBER */}
+        {/* ================================================= */}
 
         <div className="student-profile-detail">
 
@@ -172,13 +301,17 @@ function MyProfile() {
             </span>
 
             <strong>
-              {profile.roll_number}
+              {profile.roll_number || "Not available"}
             </strong>
 
           </div>
 
         </div>
 
+
+        {/* ================================================= */}
+        {/* CLASS */}
+        {/* ================================================= */}
 
         <div className="student-profile-detail">
 
@@ -191,13 +324,17 @@ function MyProfile() {
             </span>
 
             <strong>
-              {profile.class_name}
+              {profile.class_name || "Not available"}
             </strong>
 
           </div>
 
         </div>
 
+
+        {/* ================================================= */}
+        {/* SECTION */}
+        {/* ================================================= */}
 
         <div className="student-profile-detail">
 
@@ -210,13 +347,17 @@ function MyProfile() {
             </span>
 
             <strong>
-              {profile.section}
+              {profile.section || "Not available"}
             </strong>
 
           </div>
 
         </div>
 
+
+        {/* ================================================= */}
+        {/* ACADEMIC YEAR */}
+        {/* ================================================= */}
 
         <div className="student-profile-detail">
 
@@ -229,13 +370,17 @@ function MyProfile() {
             </span>
 
             <strong>
-              {profile.academic_year}
+              {profile.academic_year || "Not available"}
             </strong>
 
           </div>
 
         </div>
 
+
+        {/* ================================================= */}
+        {/* DATE OF BIRTH */}
+        {/* ================================================= */}
 
         <div className="student-profile-detail">
 
@@ -248,16 +393,19 @@ function MyProfile() {
             </span>
 
             <strong>
-              {profile.date_of_birth
-                ? profile.date_of_birth
-                : "Not available"
-              }
+              {formatDate(
+                profile.date_of_birth
+              )}
             </strong>
 
           </div>
 
         </div>
 
+
+        {/* ================================================= */}
+        {/* GENDER */}
+        {/* ================================================= */}
 
         <div className="student-profile-detail">
 
@@ -271,13 +419,15 @@ function MyProfile() {
 
             <strong>
               {profile.gender
-                || "Not available"
+                ? profile.gender
+                : "Not available"
               }
             </strong>
 
           </div>
 
         </div>
+
 
       </section>
 

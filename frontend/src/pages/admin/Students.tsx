@@ -74,11 +74,8 @@ export default function Students() {
 
 
   // ==========================================================
-  // ADD STUDENT
+  // EDIT STUDENT
   // ==========================================================
-
-  const [showAddStudent, setShowAddStudent] =
-    useState(false);
 
   const [studentName, setStudentName] =
     useState("");
@@ -98,37 +95,34 @@ export default function Students() {
   const [studentDateOfBirth, setStudentDateOfBirth] =
     useState("");
 
-  const [savingStudent, setSavingStudent] =
+  const [editingStudent, setEditingStudent] =
+    useState<Student | null>(null);
+
+  const [updatingStudent, setUpdatingStudent] =
     useState(false);
 
-  const [saveError, setSaveError] =
+  const [updateError, setUpdateError] =
     useState<string | null>(null);
 
-  const [editingStudent, setEditingStudent] =
-  useState<Student | null>(null);
-
-const [updatingStudent, setUpdatingStudent] =
-  useState(false);
-
-const [updateError, setUpdateError] =
-  useState<string | null>(null);
 
   // ==========================================================
   // GET TOKEN
   // ==========================================================
 
   const getToken = (): string | null => {
-  const token = localStorage.getItem(
-    "Smart Attend token"
-  );
 
-  console.log(
-    "Students token:",
-    token ? "FOUND" : "NOT FOUND"
-  );
+    const token = localStorage.getItem(
+      "Smart Attend token"
+    );
 
-  return token;
-};
+    console.log(
+      "Students token:",
+      token ? "FOUND" : "NOT FOUND"
+    );
+
+    return token;
+  };
+
 
   // ==========================================================
   // FETCH STUDENTS
@@ -204,14 +198,17 @@ const [updateError, setUpdateError] =
       }
 
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-        console.log(
+
+      console.log(
         "Students API response:",
         data
-        );
+      );
 
-        setStudents(data);
+
+      setStudents(data);
 
     } catch (err) {
 
@@ -349,7 +346,9 @@ const [updateError, setUpdateError] =
   ): string => {
 
     if (!value) {
+
       return "—";
+
     }
 
 
@@ -372,247 +371,262 @@ const [updateError, setUpdateError] =
 
   };
 
+
+  // ==========================================================
+  // SHOW STUDENT VALUE
+  // ==========================================================
+
   const showStudentValue = (
-  student: Student,
-  value: string | null
-): string => {
+    student: Student,
+    value: string | null
+  ): string => {
 
-  if (!student.is_active) {
-    return "—";
-  }
+    if (!student.is_active) {
 
-  return value || "—";
-};
+      return "—";
 
-const createStudent = async () => {
-  try {
-    setSavingStudent(true);
-    setSaveError(null);
-
-    const token = getToken();
-
-    if (!token) {
-      throw new Error("Authentication token not found.");
     }
 
-    if (
-      !studentName.trim() ||
-      !studentRollNumber.trim() ||
-      !studentClass.trim() ||
-      !studentSection.trim()
-    ) {
-      throw new Error("Please fill all required fields.");
-    }
+    return value || "—";
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/students`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: studentName.trim(),
-          roll_number: studentRollNumber.trim(),
-          class_name: studentClass.trim(),
-          section: studentSection.trim().toUpperCase(),
-          gender: studentGender || null,
-          date_of_birth: studentDateOfBirth || null,
-        }),
-      }
-    );
+  };
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => null);
 
-      throw new Error(
-        data?.detail || "Failed to create student."
-      );
-    }
+  // ==========================================================
+  // UPDATE STUDENT
+  // ==========================================================
 
-    await fetchStudents();
+  const updateStudent = async () => {
 
-    setStudentName("");
-    setStudentRollNumber("");
-    setStudentClass("");
-    setStudentSection("");
-    setStudentGender("");
-    setStudentDateOfBirth("");
+    if (!editingStudent) return;
 
-    setShowAddStudent(false);
 
-  } catch (err) {
-    setSaveError(
-      err instanceof Error
-        ? err.message
-        : "Failed to create student."
-    );
-  } finally {
-    setSavingStudent(false);
-  }
-};
+    try {
 
-const updateStudent = async () => {
-  if (!editingStudent) return;
+      setUpdatingStudent(true);
 
-  try {
-    setUpdatingStudent(true);
-    setUpdateError(null);
+      setUpdateError(null);
 
-    const token = getToken();
 
-    if (!token) {
-      throw new Error(
-        "Authentication token not found."
-      );
-    }
+      const token =
+        getToken();
 
-    const params = new URLSearchParams({
-      current_class_name:
-        editingStudent.class_name,
 
-      current_section:
-        editingStudent.section,
+      if (!token) {
 
-      current_roll_number:
-        editingStudent.roll_number,
-    });
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/students/by-roll/details?${params.toString()}`,
-      {
-        method: "PUT",
-
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          class_name:
-            studentClass.trim(),
-
-          section:
-            studentSection
-              .trim()
-              .toUpperCase(),
-
-          roll_number:
-            studentRollNumber.trim(),
-
-          name:
-            studentName.trim(),
-
-          gender:
-            studentGender || null,
-
-          date_of_birth:
-            studentDateOfBirth || null,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const data =
-        await response.json().catch(
-          () => null
+        throw new Error(
+          "Authentication token not found."
         );
 
-      throw new Error(
-        data?.detail ||
-        "Failed to update student."
-      );
-    }
-
-    await fetchStudents();
-
-    setEditingStudent(null);
-
-  } catch (err) {
-
-    setUpdateError(
-      err instanceof Error
-        ? err.message
-        : "Failed to update student."
-    );
-
-  } finally {
-
-    setUpdatingStudent(false);
-
-  }
-};
-
-const toggleStudentStatus = async (
-  student: Student
-) => {
-
-  try {
-
-    const token = getToken();
-
-    if (!token) {
-      throw new Error(
-        "Authentication token not found."
-      );
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/students/by-roll`,
-      {
-        method: "PATCH",
-
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          class_name: student.class_name,
-          section: student.section,
-          roll_number: student.roll_number,
-        }),
       }
-    );
 
-    if (!response.ok) {
 
-      const data =
-        await response.json().catch(
-          () => null
+      const params =
+        new URLSearchParams({
+
+          current_class_name:
+            editingStudent.class_name,
+
+          current_section:
+            editingStudent.section,
+
+          current_roll_number:
+            editingStudent.roll_number,
+
+        });
+
+
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/admin/students/by-roll/details?${params.toString()}`,
+          {
+            method: "PUT",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+
+                class_name:
+                  studentClass.trim(),
+
+                section:
+                  studentSection
+                    .trim()
+                    .toUpperCase(),
+
+                roll_number:
+                  studentRollNumber.trim(),
+
+                name:
+                  studentName.trim(),
+
+                gender:
+                  studentGender || null,
+
+                date_of_birth:
+                  studentDateOfBirth || null,
+
+              }),
+
+          }
         );
 
-      throw new Error(
-        data?.detail ||
-        "Failed to update student status."
+
+      if (!response.ok) {
+
+        const data =
+          await response
+            .json()
+            .catch(
+              () => null
+            );
+
+
+        throw new Error(
+          data?.detail ||
+          "Failed to update student."
+        );
+
+      }
+
+
+      await fetchStudents();
+
+
+      setEditingStudent(null);
+
+    } catch (err) {
+
+      setUpdateError(
+
+        err instanceof Error
+          ? err.message
+          : "Failed to update student."
+
       );
+
+    } finally {
+
+      setUpdatingStudent(false);
+
     }
 
-    const updatedStudent =
-      await response.json();
+  };
 
-        console.log(
-  "Updated student from API:",
-  updatedStudent
-);
-    setStudents((currentStudents) =>
-      currentStudents.map((item) =>
-        item.id === updatedStudent.id
-          ? updatedStudent
-          : item
-      )
-    );
 
-  } catch (err) {
+  // ==========================================================
+  // TOGGLE STUDENT STATUS
+  // ==========================================================
 
-    console.error(
-      "Error updating student status:",
-      err
-    );
+  const toggleStudentStatus = async (
+    student: Student
+  ) => {
 
-  }
-};
+    try {
+
+      const token =
+        getToken();
+
+
+      if (!token) {
+
+        throw new Error(
+          "Authentication token not found."
+        );
+
+      }
+
+
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/admin/students/by-roll`,
+          {
+            method: "PATCH",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+
+                class_name:
+                  student.class_name,
+
+                section:
+                  student.section,
+
+                roll_number:
+                  student.roll_number,
+
+              }),
+
+          }
+        );
+
+
+      if (!response.ok) {
+
+        const data =
+          await response
+            .json()
+            .catch(
+              () => null
+            );
+
+
+        throw new Error(
+          data?.detail ||
+          "Failed to update student status."
+        );
+
+      }
+
+
+      const updatedStudent =
+        await response.json();
+
+
+      console.log(
+        "Updated student from API:",
+        updatedStudent
+      );
+
+
+      setStudents(
+        (currentStudents) =>
+          currentStudents.map(
+            (item) =>
+              item.id ===
+              updatedStudent.id
+                ? updatedStudent
+                : item
+          )
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Error updating student status:",
+        err
+      );
+
+    }
+
+  };
+
+
   // ==========================================================
   // PAGE
   // ==========================================================
@@ -651,34 +665,26 @@ const toggleStudentStatus = async (
             !error && (
 
               <p>
+
                 Showing{" "}
+
                 {filteredStudents.length}
+
                 {" "}
+
                 of{" "}
+
                 {students.length}
+
                 {" "}
+
                 students
+
               </p>
 
             )}
 
         </div>
-
-
-        <button
-  type="button"
-  className="add-student-btn"
-  onClick={() => {
-
-    setSaveError(null);
-
-    setShowAddStudent(true);
-
-  }}
->
-  <span className="add-student-icon">+</span>
-  <span>Add Student</span>
-</button>
 
       </div>
 
@@ -688,10 +694,18 @@ const toggleStudentStatus = async (
       {/* ================================================== */}
 
       {loading && (
-        <div className="admin-student-state admin-student-loading">
-            <p>Loading students...</p>
+
+        <div
+          className="admin-student-state admin-student-loading"
+        >
+
+          <p>
+            Loading students...
+          </p>
+
         </div>
-    )}
+
+      )}
 
 
       {/* ================================================== */}
@@ -699,18 +713,27 @@ const toggleStudentStatus = async (
       {/* ================================================== */}
 
       {!loading &&
-            error && (
-                <div className="admin-student-state admin-student-error">
-                <p>{error}</p>
+        error && (
 
-                <button
-                    type="button"
-                    onClick={fetchStudents}
-                >
-                    Try Again
-                </button>
-                </div>
+          <div
+            className="admin-student-state admin-student-error"
+          >
+
+            <p>
+              {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={fetchStudents}
+            >
+              Try Again
+            </button>
+
+          </div>
+
         )}
+
 
       {/* ================================================== */}
       {/* FILTERS */}
@@ -720,263 +743,249 @@ const toggleStudentStatus = async (
         !error &&
         students.length > 0 && (
 
-          <div className="admin-student-filters">
+          <div
+            className="admin-student-filters"
+          >
 
-  <input
-    type="text"
-    placeholder="Search by name or roll number"
-    value={searchTerm}
-    onChange={(event) =>
-      setSearchTerm(event.target.value)
-    }
-  />
+            <input
+              type="text"
+              placeholder="Search by name or roll number"
+              value={searchTerm}
+              onChange={(event) =>
+                setSearchTerm(
+                  event.target.value
+                )
+              }
+            />
 
-  <select
-    value={selectedClass}
-    onChange={(event) => {
-      setSelectedClass(event.target.value);
-      setSelectedSection("");
-    }}
-  >
-    <option value="">
-      All Classes
-    </option>
 
-    {classOptions.map((className) => (
-      <option
-        key={className}
-        value={className}
-      >
-        {className}
-      </option>
-    ))}
-  </select>
+            <select
+              value={selectedClass}
+              onChange={(event) => {
 
-  <select
-    value={selectedSection}
-    onChange={(event) =>
-      setSelectedSection(event.target.value)
-    }
-  >
-    <option value="">
-      All Sections
-    </option>
+                setSelectedClass(
+                  event.target.value
+                );
 
-    {sectionOptions.map((section) => (
-      <option
-        key={section}
-        value={section}
-      >
-        Section {section}
-      </option>
-    ))}
-  </select>
+                setSelectedSection("");
 
-  <button
-    type="button"
-    onClick={() => {
-      setSearchTerm("");
-      setSelectedClass("");
-      setSelectedSection("");
-    }}
-  >
-    Reset
-  </button>
+              }}
+            >
 
-</div>
-          
+              <option value="">
+                All Classes
+              </option>
+
+              {classOptions.map(
+                (className) => (
+
+                  <option
+                    key={className}
+                    value={className}
+                  >
+                    {className}
+                  </option>
+
+                )
+              )}
+
+            </select>
+
+
+            <select
+              value={selectedSection}
+              onChange={(event) =>
+                setSelectedSection(
+                  event.target.value
+                )
+              }
+            >
+
+              <option value="">
+                All Sections
+              </option>
+
+              {sectionOptions.map(
+                (section) => (
+
+                  <option
+                    key={section}
+                    value={section}
+                  >
+                    Section {section}
+                  </option>
+
+                )
+              )}
+
+            </select>
+
+
+            <button
+              type="button"
+              onClick={() => {
+
+                setSearchTerm("");
+
+                setSelectedClass("");
+
+                setSelectedSection("");
+
+              }}
+            >
+              Reset
+            </button>
+
+          </div>
 
         )}
 
 
-        {showAddStudent && (
-            <div className="admin-student-form">
+      {/* ================================================== */}
+      {/* EDIT STUDENT FORM */}
+      {/* ================================================== */}
 
-                <h2>Add Student</h2>
+      {editingStudent && (
 
-                {saveError && (
-                <p>{saveError}</p>
-                )}
+        <div
+          className="admin-student-form"
+        >
 
-                <input
-                placeholder="Student Name"
-                value={studentName}
-                onChange={(e) =>
-                    setStudentName(e.target.value)
-                }
-                />
+          <h2>
+            Edit Student
+          </h2>
 
-                <input
-                placeholder="Roll Number"
-                value={studentRollNumber}
-                onChange={(e) =>
-                    setStudentRollNumber(e.target.value)
-                }
-                />
 
-                <input
-                placeholder="Class"
-                value={studentClass}
-                onChange={(e) =>
-                    setStudentClass(e.target.value)
-                }
-                />
+          {updateError && (
 
-                <input
-                placeholder="Section"
-                value={studentSection}
-                onChange={(e) =>
-                    setStudentSection(e.target.value)
-                }
-                />
+            <p>
+              {updateError}
+            </p>
 
-                <select
-                value={studentGender}
-                onChange={(e) =>
-                    setStudentGender(e.target.value)
-                }
-                >
-                <option value="">Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-                </select>
+          )}
 
-                <input
-                type="date"
-                value={studentDateOfBirth}
-                onChange={(e) =>
-                    setStudentDateOfBirth(e.target.value)
-                }
-                />
 
-                <button
-                type="button"
-                onClick={createStudent}
-                disabled={savingStudent}
-                >
-                {savingStudent ? "Saving..." : "Save Student"}
-                </button>
+          <input
+            placeholder="Student Name"
+            value={studentName}
+            onChange={(e) =>
+              setStudentName(
+                e.target.value
+              )
+            }
+          />
 
-                <button
-                type="button"
-                onClick={() => {
-                    setShowAddStudent(false);
-                    setSaveError(null);
-                }}
-                >
-                Cancel
-                </button>
 
-            </div>
-            )}
+          <input
+            placeholder="Roll Number"
+            value={studentRollNumber}
+            onChange={(e) =>
+              setStudentRollNumber(
+                e.target.value
+              )
+            }
+          />
+
+
+          <input
+            placeholder="Class"
+            value={studentClass}
+            onChange={(e) =>
+              setStudentClass(
+                e.target.value
+              )
+            }
+          />
+
+
+          <input
+            placeholder="Section"
+            value={studentSection}
+            onChange={(e) =>
+              setStudentSection(
+                e.target.value
+              )
+            }
+          />
+
+
+          <select
+            value={studentGender}
+            onChange={(e) =>
+              setStudentGender(
+                e.target.value
+              )
+            }
+          >
+
+            <option value="">
+              Gender
+            </option>
+
+            <option value="Male">
+              Male
+            </option>
+
+            <option value="Female">
+              Female
+            </option>
+
+            <option value="Other">
+              Other
+            </option>
+
+          </select>
+
+
+          <input
+            type="date"
+            value={studentDateOfBirth}
+            onChange={(e) =>
+              setStudentDateOfBirth(
+                e.target.value
+              )
+            }
+          />
+
+
+          <button
+            type="button"
+            onClick={updateStudent}
+            disabled={updatingStudent}
+          >
+
+            {updatingStudent
+              ? "Updating..."
+              : "Update Student"}
+
+          </button>
+
+
+          <button
+            type="button"
+            onClick={() => {
+
+              setEditingStudent(null);
+
+              setUpdateError(null);
+
+            }}
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      )}
 
 
       {/* ================================================== */}
       {/* STUDENT TABLE */}
       {/* ================================================== */}
 
-      {editingStudent && (
-        <div className="admin-student-form">
-
-            <h2>Edit Student</h2>
-
-            {updateError && (
-            <p>{updateError}</p>
-            )}
-
-            <input
-            placeholder="Student Name"
-            value={studentName}
-            onChange={(e) =>
-                setStudentName(e.target.value)
-            }
-            />
-
-            <input
-            placeholder="Roll Number"
-            value={studentRollNumber}
-            onChange={(e) =>
-                setStudentRollNumber(e.target.value)
-            }
-            />
-
-            <input
-            placeholder="Class"
-            value={studentClass}
-            onChange={(e) =>
-                setStudentClass(e.target.value)
-            }
-            />
-
-            <input
-            placeholder="Section"
-            value={studentSection}
-            onChange={(e) =>
-                setStudentSection(e.target.value)
-            }
-            />
-
-            <select
-            value={studentGender}
-            onChange={(e) =>
-                setStudentGender(e.target.value)
-            }
-            >
-            <option value="">
-                Gender
-            </option>
-
-            <option value="Male">
-                Male
-            </option>
-
-            <option value="Female">
-                Female
-            </option>
-
-            <option value="Other">
-                Other
-            </option>
-            </select>
-
-            <input
-            type="date"
-            value={studentDateOfBirth}
-            onChange={(e) =>
-                setStudentDateOfBirth(
-                e.target.value
-                )
-            }
-            />
-
-            <button
-            type="button"
-            onClick={updateStudent}
-            disabled={updatingStudent}
-            >
-            {updatingStudent
-                ? "Updating..."
-                : "Update Student"}
-            </button>
-
-            <button
-            type="button"
-            onClick={() => {
-                setEditingStudent(null);
-                setUpdateError(null);
-            }}
-            >
-            Cancel
-            </button>
-
-        </div>
-        )}
-
       {!loading &&
         !error &&
-        filteredStudents.length >
-          0 && (
+        filteredStudents.length > 0 && (
 
           <div
             className="admin-student-table-wrapper"
@@ -1043,120 +1052,159 @@ const toggleStudentStatus = async (
                     >
 
                       <td>
-                            {showStudentValue(
-                                student,
-                                student.name
-                            )}
-                            </td>
 
-                            <td>
-                            {showStudentValue(
-                                student,
-                                student.roll_number
-                            )}
-                            </td>
+                        {showStudentValue(
+                          student,
+                          student.name
+                        )}
 
-                            <td>
-                            {showStudentValue(
-                                student,
-                                student.class_name
-                            )}
-                            </td>
+                      </td>
 
-                            <td>
-                            {showStudentValue(
-                                student,
-                                student.section
-                            )}
-                            </td>
-
-                            <td>
-                            {showStudentValue(
-                                student,
-                                student.gender
-                            )}
-                            </td>
-
-                            <td>
-                            {student.is_active
-                                ? formatDate(student.date_of_birth)
-                                : "—"}
-                            </td>
 
                       <td>
+
+                        {showStudentValue(
+                          student,
+                          student.roll_number
+                        )}
+
+                      </td>
+
+
+                      <td>
+
+                        {showStudentValue(
+                          student,
+                          student.class_name
+                        )}
+
+                      </td>
+
+
+                      <td>
+
+                        {showStudentValue(
+                          student,
+                          student.section
+                        )}
+
+                      </td>
+
+
+                      <td>
+
+                        {showStudentValue(
+                          student,
+                          student.gender
+                        )}
+
+                      </td>
+
+
+                      <td>
+
+                        {student.is_active
+                          ? formatDate(
+                              student.date_of_birth
+                            )
+                          : "—"}
+
+                      </td>
+
+
+                      <td>
+
                         <span
-                            className={
+                          className={
                             student.is_active
-                                ? "student-status active"
-                                : "student-status inactive"
-                            }
+                              ? "student-status active"
+                              : "student-status inactive"
+                          }
                         >
-                            {student.is_active
+
+                          {student.is_active
                             ? "Active"
                             : "Inactive"}
+
                         </span>
-                        </td>
+
+                      </td>
+
 
                       <td>
-  <div className="student-actions">
 
-    <button
-      type="button"
-      className="student-edit-btn"
-      onClick={() => {
+                        <div
+                          className="student-actions"
+                        >
 
-        setEditingStudent(student);
+                          <button
+                            type="button"
+                            className="student-edit-btn"
+                            onClick={() => {
 
-        setStudentName(
-          student.name
-        );
+                              setEditingStudent(
+                                student
+                              );
 
-        setStudentRollNumber(
-          student.roll_number
-        );
+                              setStudentName(
+                                student.name
+                              );
 
-        setStudentClass(
-          student.class_name
-        );
+                              setStudentRollNumber(
+                                student.roll_number
+                              );
 
-        setStudentSection(
-          student.section
-        );
+                              setStudentClass(
+                                student.class_name
+                              );
 
-        setStudentGender(
-          student.gender || ""
-        );
+                              setStudentSection(
+                                student.section
+                              );
 
-        setStudentDateOfBirth(
-          student.date_of_birth || ""
-        );
+                              setStudentGender(
+                                student.gender || ""
+                              );
 
-        setUpdateError(null);
+                              setStudentDateOfBirth(
+                                student.date_of_birth || ""
+                              );
 
-      }}
-    >
-      Edit
-    </button>
+                              setUpdateError(
+                                null
+                              );
+
+                            }}
+                          >
+
+                            Edit
+
+                          </button>
 
 
-    <button
-      type="button"
-      className={
-        student.is_active
-          ? "student-deactivate-btn"
-          : "student-activate-btn"
-      }
-      onClick={() =>
-        toggleStudentStatus(student)
-      }
-    >
-      {student.is_active
-        ? "Deactivate"
-        : "Activate"}
-    </button>
+                          <button
+                            type="button"
+                            className={
+                              student.is_active
+                                ? "student-deactivate-btn"
+                                : "student-activate-btn"
+                            }
+                            onClick={() =>
+                              toggleStudentStatus(
+                                student
+                              )
+                            }
+                          >
 
-  </div>
-</td>
+                            {student.is_active
+                              ? "Deactivate"
+                              : "Activate"}
+
+                          </button>
+
+                        </div>
+
+                      </td>
 
                     </tr>
 
@@ -1178,11 +1226,16 @@ const toggleStudentStatus = async (
 
       {!loading &&
         !error &&
-        students.length ===
-          0 && (
+        students.length === 0 && (
 
-          <div className="admin-student-state admin-student-empty">
-            <p>No students found.</p>
+          <div
+            className="admin-student-state admin-student-empty"
+          >
+
+            <p>
+              No students found.
+            </p>
+
           </div>
 
         )}
@@ -1195,14 +1248,17 @@ const toggleStudentStatus = async (
       {!loading &&
         !error &&
         students.length > 0 &&
-        filteredStudents.length ===
-          0 && (
+        filteredStudents.length === 0 && (
 
-          <div className="admin-student-state admin-student-empty">
+          <div
+            className="admin-student-state admin-student-empty"
+          >
+
             <p>
-                No students match your search or filters.
+              No students match your search or filters.
             </p>
-        </div>
+
+          </div>
 
         )}
 

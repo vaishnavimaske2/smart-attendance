@@ -322,7 +322,7 @@ function StudentDashboard() {
 
 
           <h1>
-            Good morning, {profile.name} 👋
+            Welcome {profile.name} 👋
           </h1>
 
 

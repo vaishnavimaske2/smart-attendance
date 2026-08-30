@@ -195,8 +195,8 @@ function TeacherDashboard() {
           </span>
 
           <h1>
-            Good morning,{" "}
-            {profile.name.split(" ")[0]} 👋
+            Welcome,{" "}
+            {profile.name.split(" ")[0]} ..!
           </h1>
 
           <p>

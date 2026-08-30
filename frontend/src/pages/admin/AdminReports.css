@@ -1,0 +1,299 @@
+/* ============================================================
+   ADMIN REPORTS
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   REPORT PAGE
+   ------------------------------------------------------------ */
+
+.role-page {
+  width: 100%;
+}
+
+
+/* ------------------------------------------------------------
+   PAGE HEADER
+   ------------------------------------------------------------ */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.page-header p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+
+/* ------------------------------------------------------------
+   CARD
+   ------------------------------------------------------------ */
+
+.card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+
+/* ------------------------------------------------------------
+   CARD HEADER
+   ------------------------------------------------------------ */
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.card-header p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+
+/* ------------------------------------------------------------
+   FORM GRID
+   ------------------------------------------------------------ */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+
+/* ------------------------------------------------------------
+   FORM GROUP
+   ------------------------------------------------------------ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* ------------------------------------------------------------
+   SELECT + INPUT
+   ------------------------------------------------------------ */
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  background: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* ------------------------------------------------------------
+   FOCUS
+   ------------------------------------------------------------ */
+
+.form-group select:focus,
+.form-group input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+
+/* ------------------------------------------------------------
+   DISABLED INPUTS
+   ------------------------------------------------------------ */
+
+.form-group select:disabled,
+.form-group input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: #f3f4f6;
+}
+
+
+/* ------------------------------------------------------------
+   FORM ERROR
+   ------------------------------------------------------------ */
+
+.form-error {
+  margin-top: 20px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+/* ------------------------------------------------------------
+   FORM ACTIONS
+   ------------------------------------------------------------ */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+
+/* ------------------------------------------------------------
+   EXPORT BUTTON
+   ------------------------------------------------------------ */
+
+.form-actions button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-actions button:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.20);
+}
+
+.form-actions button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+
+/* ------------------------------------------------------------
+   REPORT COLUMNS
+   ------------------------------------------------------------ */
+
+.report-columns {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+
+/* ------------------------------------------------------------
+   REPORT COLUMN ITEM
+   ------------------------------------------------------------ */
+
+.report-columns span {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .card {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .page-header h2 {
+    font-size: 23px;
+  }
+
+  .page-header p {
+    font-size: 13px;
+  }
+
+  .card-header h3 {
+    font-size: 17px;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .report-columns {
+    grid-template-columns: 1fr;
+  }
+
+}
