@@ -6,3 +6,4 @@ python-dotenv
 passlib
 python-jose
 email-validator
+openpyxl

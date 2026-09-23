@@ -22,6 +22,8 @@ from app.routes.teacher_students import router as teacher_students_router
 from app.routes.dashboard import router as dashboard_router
 from app.routes.admin_dashboard import router as admin_dashboard_router
 from app.routes.admin_students import router as admin_students_router
+from app.routes.attendance_excel import router as attendance_excel_router
+from app.routes.admin_reports import router as admin_reports_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -78,6 +80,8 @@ app.include_router(teacher_students_router)
 app.include_router(dashboard_router)
 app.include_router(admin_dashboard_router)
 app.include_router(admin_students_router)
+app.include_router(attendance_excel_router)
+app.include_router(admin_reports_router)
 
 @app.get("/")
 def root():

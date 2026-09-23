@@ -7,6 +7,7 @@ import {
 import {
   BarChart3,
   CalendarDays,
+  Download,
   CheckCircle2,
   ClipboardList,
   GraduationCap,
@@ -24,11 +25,19 @@ import { apiRequest } from "../../services/api";
 // TYPES
 // ============================================================
 
+interface Subject {
+  subject_id: number;
+  subject_name: string;
+}
+
+
 interface ClassOption {
   class_id: number;
   class_name: string;
   section: string;
   academic_year: string;
+  is_class_teacher?: boolean;
+  subjects?: Subject[];
 }
 
 
@@ -95,6 +104,32 @@ function Reports() {
 
 
   // ==========================================================
+  // EXCEL EXPORT
+  // ==========================================================
+
+  const [exportClassId, setExportClassId] =
+    useState("");
+
+  const [exportSection, setExportSection] =
+    useState("");
+
+  const [exportSubjectId, setExportSubjectId] =
+    useState("");
+
+  const [exportPeriod, setExportPeriod] =
+    useState("whole");
+
+  const [exportFromDate, setExportFromDate] =
+    useState("");
+
+  const [exportToDate, setExportToDate] =
+    useState("");
+
+  const [exporting, setExporting] =
+    useState(false);
+
+
+  // ==========================================================
   // LOADING
   // ==========================================================
 
@@ -118,6 +153,34 @@ function Reports() {
     useState("");
 
 
+
+  // ==========================================================
+  // EXCEL EXPORT CLASS
+  // ==========================================================
+
+  const exportClass =
+    classes.find(
+      (item) =>
+        String(item.class_id) === exportClassId &&
+        item.section === exportSection
+    );
+
+
+  // ==========================================================
+  // EXCEL EXPORT SECTIONS
+  // ==========================================================
+
+  const exportSections =
+    classes
+      .filter(
+        (item) =>
+          String(item.class_id) === exportClassId
+      )
+      .map(
+        (item) => item.section
+      );
+
+
   // ==========================================================
   // LOAD CLASSES
   // ==========================================================
@@ -133,11 +196,54 @@ function Reports() {
 
         const response =
           await apiRequest(
-            "/api/students/options"
-          ) as ClassOption[];
+            "/api/teacher-students/options"
+          ) as {
+            classes: Array<{
+              class_id: number;
+              class_name: string;
+              section: string;
+              academic_year: string;
+              is_class_teacher?: boolean;
+              subjects?: Array<{
+                id: number;
+                name: string;
+              }>;
+            }>;
+          };
+
+        const mappedClasses: ClassOption[] =
+          (response?.classes || []).map(
+            (schoolClass) => ({
+              class_id:
+                schoolClass.class_id,
+
+              class_name:
+                schoolClass.class_name,
+
+              section:
+                schoolClass.section,
+
+              academic_year:
+                schoolClass.academic_year,
+
+              is_class_teacher:
+                schoolClass.is_class_teacher,
+
+              subjects:
+                (schoolClass.subjects || []).map(
+                  (subject) => ({
+                    subject_id:
+                      subject.id,
+
+                    subject_name:
+                      subject.name,
+                  })
+                ),
+            })
+          );
 
         setClasses(
-          response || []
+          mappedClasses
         );
 
       } catch (error) {
@@ -178,6 +284,44 @@ function Reports() {
     setReport(null);
 
     setSearchTerm("");
+
+    setError("");
+    setSuccess("");
+
+  }
+
+
+  // ==========================================================
+  // EXCEL CLASS CHANGE
+  // ==========================================================
+
+  function handleExportClassChange(
+    value: string
+  ) {
+
+    setExportClassId(value);
+
+    setExportSection("");
+
+    setExportSubjectId("");
+
+    setError("");
+    setSuccess("");
+
+  }
+
+
+  // ==========================================================
+  // EXCEL SECTION CHANGE
+  // ==========================================================
+
+  function handleExportSectionChange(
+    value: string
+  ) {
+
+    setExportSection(value);
+
+    setExportSubjectId("");
 
     setError("");
     setSuccess("");
@@ -287,6 +431,309 @@ function Reports() {
 
 
   // ==========================================================
+  // EXCEL EXPORT
+  // ==========================================================
+
+  async function handleExportExcel() {
+
+    // --------------------------------------------------------
+    // VALIDATE CLASS
+    // --------------------------------------------------------
+
+    if (!exportClassId) {
+
+      setError(
+        "Please select a class for Excel export."
+      );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // VALIDATE SECTION
+    // --------------------------------------------------------
+
+    if (!exportSection) {
+
+      setError(
+        "Please select a section for Excel export."
+      );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // VALIDATE CLASS + SECTION
+    // --------------------------------------------------------
+
+    if (!exportClass) {
+
+      setError(
+        "Selected class and section could not be found."
+      );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // VALIDATE SUBJECT
+    // --------------------------------------------------------
+
+    if (!exportSubjectId) {
+
+      setError(
+        "Please select a subject for Excel export."
+      );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // VALIDATE CUSTOM DATES
+    // --------------------------------------------------------
+
+    if (
+      exportPeriod === "custom"
+      && (
+        !exportFromDate
+        || !exportToDate
+      )
+    ) {
+
+      setError(
+        "Please select both From Date and To Date."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      exportPeriod === "custom"
+      && exportFromDate > exportToDate
+    ) {
+
+      setError(
+        "From Date cannot be after To Date."
+      );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // FIND SUBJECT
+    // --------------------------------------------------------
+
+    const selectedSubject =
+      exportClass.subjects?.find(
+        (subject) =>
+          String(
+            subject.subject_id
+          ) === exportSubjectId
+      );
+
+
+    if (!selectedSubject) {
+
+      setError(
+        "Selected subject could not be found."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      setExporting(true);
+
+      setError("");
+
+      setSuccess("");
+
+
+      // ------------------------------------------------------
+      // BUILD QUERY
+      // ------------------------------------------------------
+
+      const params =
+        new URLSearchParams({
+
+          class_name:
+            exportClass.class_name,
+
+          section:
+            exportClass.section,
+
+          subject_name:
+            selectedSubject.subject_name,
+
+          period:
+            exportPeriod,
+
+        });
+
+
+      // ------------------------------------------------------
+      // CUSTOM DATE RANGE
+      // ------------------------------------------------------
+
+      if (
+        exportPeriod === "custom"
+      ) {
+
+        params.set(
+          "from_date",
+          exportFromDate
+        );
+
+        params.set(
+          "to_date",
+          exportToDate
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // REQUEST EXCEL FILE
+      // ------------------------------------------------------
+
+      const token =
+        localStorage.getItem("Smart Attend token");
+
+
+      const response =
+        await fetch(
+          `http://127.0.0.1:8000/api/attendance-excel/export?${params.toString()}`,
+          {
+            method: "GET",
+
+            headers: token
+              ? {
+                  Authorization:
+                    `Bearer ${token}`,
+                }
+              : undefined,
+          }
+        );
+
+
+      if (!response.ok) {
+
+        let message =
+          "Unable to export attendance.";
+
+        try {
+
+          const errorData =
+            await response.json();
+
+          if (
+            errorData?.detail
+          ) {
+
+            message =
+              errorData.detail;
+
+          }
+
+        } catch {
+
+          // Ignore JSON parsing errors
+
+        }
+
+
+        throw new Error(
+          message
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // DOWNLOAD FILE
+      // ------------------------------------------------------
+
+      const blob =
+        await response.blob();
+
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+
+      link.href =
+        url;
+
+
+      // ------------------------------------------------------
+      // FILE NAME
+      // ------------------------------------------------------
+
+      link.download =
+        `attendance_${exportClass.class_name}_${exportClass.section}_${selectedSubject.subject_name}_${exportPeriod}.xlsx`;
+
+
+      document.body.appendChild(
+        link
+      );
+
+
+      link.click();
+
+
+      link.remove();
+
+
+      window.URL.revokeObjectURL(
+        url
+      );
+
+
+      setSuccess(
+        "Attendance Excel exported successfully."
+      );
+
+    } catch (error) {
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to export attendance."
+      );
+
+    } finally {
+
+      setExporting(false);
+
+    }
+
+  }
+
+
+  // ==========================================================
   // FILTER STUDENTS
   // ==========================================================
 
@@ -356,7 +803,7 @@ function Reports() {
 
 
   // ==========================================================
-  // UI STARTS IN PART 2
+  // PAGE
   // ==========================================================
 
   return (
@@ -632,6 +1079,7 @@ function Reports() {
 
       </div>
 
+
       {/* ==================================================== */}
       {/* REPORT SUMMARY */}
       {/* ==================================================== */}
@@ -769,6 +1217,7 @@ function Reports() {
 
       )}
 
+
       {/* ==================================================== */}
       {/* STUDENT ATTENDANCE SECTION */}
       {/* ==================================================== */}
@@ -806,6 +1255,7 @@ function Reports() {
         </div>
 
       )}
+
 
       {/* ==================================================== */}
       {/* STUDENT ATTENDANCE TABLE */}
@@ -1095,7 +1545,372 @@ function Reports() {
         </div>
 
       )}
-{/* ==================================================== */}
+
+
+      {/* ==================================================== */}
+      {/* EXCEL EXPORT */}
+      {/* ==================================================== */}
+
+      <section className="teacher-attendance-card">
+
+        <div className="teacher-attendance-card-title">
+
+          <Download size={22} />
+
+          <div>
+
+            <h2>
+              Export Attendance
+            </h2>
+
+            <p>
+              Select a class, section, subject and
+              attendance period to download Excel.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div className="teacher-attendance-selection-grid">
+
+
+          {/* ================================================= */}
+          {/* CLASS */}
+          {/* ================================================= */}
+
+          <div className="teacher-attendance-field">
+
+            <label>
+              Class
+            </label>
+
+            <select
+              value={exportClassId}
+              onChange={(event) =>
+                handleExportClassChange(
+                  event.target.value
+                )
+              }
+            >
+
+              <option value="">
+                Select class
+              </option>
+
+              {classes
+                .filter(
+                  (
+                    schoolClass,
+                    index,
+                    allClasses
+                  ) =>
+                    index ===
+                    allClasses.findIndex(
+                      (item) =>
+                        item.class_id
+                        === schoolClass.class_id
+                    )
+                )
+                .map(
+                  (schoolClass) => (
+
+                    <option
+                      key={
+                        schoolClass.class_id
+                      }
+                      value={
+                        schoolClass.class_id
+                      }
+                    >
+
+                      {schoolClass.class_name}
+
+                    </option>
+
+                  )
+                )}
+
+            </select>
+
+          </div>
+
+
+          {/* ================================================= */}
+          {/* SECTION */}
+          {/* ================================================= */}
+
+          <div className="teacher-attendance-field">
+
+            <label>
+              Section
+            </label>
+
+            <select
+              value={exportSection}
+              onChange={(event) =>
+                handleExportSectionChange(
+                  event.target.value
+                )
+              }
+              disabled={
+                !exportClassId
+              }
+            >
+
+              <option value="">
+                Select section
+              </option>
+
+              {exportSections.map(
+                (section) => (
+
+                  <option
+                    key={section}
+                    value={section}
+                  >
+
+                    Section {section}
+
+                  </option>
+
+                )
+              )}
+
+            </select>
+
+          </div>
+
+
+          {/* ================================================= */}
+          {/* SUBJECT */}
+          {/* ================================================= */}
+
+          <div className="teacher-attendance-field">
+
+            <label>
+              Subject
+            </label>
+
+            <select
+              value={exportSubjectId}
+              onChange={(event) =>
+                setExportSubjectId(
+                  event.target.value
+                )
+              }
+              disabled={
+                !exportClass
+              }
+            >
+
+              <option value="">
+                Select subject
+              </option>
+
+              {exportClass?.subjects?.map(
+                (subject) => (
+
+                  <option
+                    key={
+                      subject.subject_id
+                    }
+                    value={
+                      subject.subject_id
+                    }
+                  >
+
+                    {subject.subject_name}
+
+                  </option>
+
+                )
+              )}
+
+            </select>
+
+          </div>
+
+
+          {/* ================================================= */}
+          {/* EXPORT PERIOD */}
+          {/* ================================================= */}
+
+          <div className="teacher-attendance-field">
+
+            <label>
+              Export Period
+            </label>
+
+            <select
+              value={exportPeriod}
+              onChange={(event) => {
+
+                setExportPeriod(
+                  event.target.value
+                );
+
+                if (
+                  event.target.value
+                  !== "custom"
+                ) {
+
+                  setExportFromDate("");
+
+                  setExportToDate("");
+
+                }
+
+              }}
+            >
+
+              <option value="weekly">
+                This Week
+              </option>
+
+              <option value="monthly">
+                This Month
+              </option>
+
+              <option value="whole">
+                Whole Attendance
+              </option>
+
+              <option value="custom">
+                Custom Date Range
+              </option>
+
+            </select>
+
+          </div>
+
+
+        </div>
+
+
+        {/* ================================================== */}
+        {/* CUSTOM DATE RANGE */}
+        {/* ================================================== */}
+
+        {exportPeriod === "custom" && (
+
+          <div
+            className="teacher-attendance-selection-grid"
+            style={{
+              marginTop: "16px",
+            }}
+          >
+
+            <div className="teacher-attendance-field">
+
+              <label>
+                From Date
+              </label>
+
+              <input
+                type="date"
+                value={exportFromDate}
+                onChange={(event) =>
+                  setExportFromDate(
+                    event.target.value
+                  )
+                }
+              />
+
+            </div>
+
+
+            <div className="teacher-attendance-field">
+
+              <label>
+                To Date
+              </label>
+
+              <input
+                type="date"
+                value={exportToDate}
+                onChange={(event) =>
+                  setExportToDate(
+                    event.target.value
+                  )
+                }
+              />
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* ================================================== */}
+        {/* EXPORT BUTTON */}
+        {/* ================================================== */}
+
+        <div
+          className="reports-filter-actions"
+          style={{
+            marginTop: "20px",
+          }}
+        >
+
+          <button
+            type="button"
+            className="student-primary-button"
+            onClick={
+              handleExportExcel
+            }
+            disabled={
+              exporting
+              || !exportClassId
+              || !exportSection
+              || !exportSubjectId
+              || (
+                exportPeriod === "custom"
+                && (
+                  !exportFromDate
+                  || !exportToDate
+                )
+              )
+            }
+          >
+
+            {exporting ? (
+
+              <>
+
+                <RefreshCw
+                  size={18}
+                  className="spin"
+                />
+
+                Exporting...
+
+              </>
+
+            ) : (
+
+              <>
+
+                <Download
+                  size={18}
+                />
+
+                Export Excel
+
+              </>
+
+            )}
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+      {/* ==================================================== */}
       {/* REPORT FOOTER */}
       {/* ==================================================== */}
 

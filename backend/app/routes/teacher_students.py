@@ -14,6 +14,7 @@ from app.database.models import (
     Student,
     Class,
     Subject,
+    ClassSubject,
     TeacherAssignment
 )
 
@@ -51,21 +52,107 @@ def get_teacher_options(
 
 ):
 
-    # --------------------------------------------------------
-    # ONLY TEACHERS
-    # --------------------------------------------------------
+    # ========================================================
+    # ONLY ADMIN OR TEACHER
+    # ========================================================
 
-    if current_user.role != "TEACHER":
+    if current_user.role not in {"ADMIN", "TEACHER"}:
 
         raise HTTPException(
             status_code=403,
-            detail="Only teachers can access these options"
+            detail="Only admin or teacher can access these options"
         )
 
 
-    # --------------------------------------------------------
-    # GET ACTIVE TEACHER ASSIGNMENTS
-    # --------------------------------------------------------
+    # ========================================================
+    # ADMIN
+    # ========================================================
+
+    if current_user.role == "ADMIN":
+
+        classes = (
+            db.query(Class)
+            .filter(
+                Class.school_id == current_user.school_id,
+                Class.is_active == True
+            )
+            .order_by(
+                Class.name,
+                Class.section
+            )
+            .all()
+        )
+
+
+        class_data = []
+
+
+        for school_class in classes:
+
+            class_subjects = (
+                db.query(
+                    Subject.id,
+                    Subject.name
+                )
+                .join(
+                    ClassSubject,
+                    ClassSubject.subject_id == Subject.id
+                )
+                .filter(
+                    ClassSubject.class_id == school_class.id,
+                    ClassSubject.is_active == True,
+
+                    Subject.school_id
+                    == current_user.school_id,
+
+                    Subject.is_active == True
+                )
+                .order_by(
+                    Subject.name
+                )
+                .all()
+            )
+
+
+            class_data.append({
+
+                "class_id":
+                    school_class.id,
+
+                "class_name":
+                    school_class.name,
+
+                "section":
+                    school_class.section,
+
+                "academic_year":
+                    school_class.academic_year,
+
+                "is_class_teacher":
+                    False,
+
+                "subjects": [
+
+                    {
+                        "id": subject.id,
+                        "name": subject.name
+                    }
+
+                    for subject in class_subjects
+
+                ]
+
+            })
+
+
+        return {
+            "classes": class_data
+        }
+
+
+    # ========================================================
+    # TEACHER
+    # ========================================================
 
     assignments = (
         db.query(TeacherAssignment)
@@ -80,20 +167,12 @@ def get_teacher_options(
     )
 
 
-    # --------------------------------------------------------
-    # NO ASSIGNMENTS
-    # --------------------------------------------------------
-
     if not assignments:
 
         return {
             "classes": []
         }
 
-
-    # --------------------------------------------------------
-    # BUILD CLASS OPTIONS
-    # --------------------------------------------------------
 
     class_data = {}
 
@@ -107,7 +186,10 @@ def get_teacher_options(
                 == assignment.class_id,
 
                 Class.school_id
-                == current_user.school_id
+                == current_user.school_id,
+
+                Class.is_active
+                == True
             )
             .first()
         )
@@ -118,9 +200,9 @@ def get_teacher_options(
             continue
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # CREATE CLASS
-        # ----------------------------------------------------
+        # ====================================================
 
         if school_class.id not in class_data:
 
@@ -146,9 +228,9 @@ def get_teacher_options(
             }
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # CLASS TEACHER
-        # ----------------------------------------------------
+        # ====================================================
 
         if assignment.is_class_teacher:
 
@@ -157,9 +239,9 @@ def get_teacher_options(
             ]["is_class_teacher"] = True
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # SUBJECT
-        # ----------------------------------------------------
+        # ====================================================
 
         if assignment.subject_id is not None:
 
@@ -183,8 +265,7 @@ def get_teacher_options(
 
                 existing_subject = any(
 
-                    item["id"]
-                    == subject.id
+                    item["id"] == subject.id
 
                     for item in
                     class_data[
@@ -209,9 +290,9 @@ def get_teacher_options(
                     })
 
 
-    # --------------------------------------------------------
-    # RETURN
-    # --------------------------------------------------------
+    # ========================================================
+    # RETURN TEACHER OPTIONS
+    # ========================================================
 
     return {
 
@@ -219,7 +300,6 @@ def get_teacher_options(
             list(class_data.values())
 
     }
-
 
 # ============================================================
 # GET STUDENTS FOR SELECTED CLASS + SUBJECT

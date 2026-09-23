@@ -1660,11 +1660,11 @@ textarea {
 
   background: linear-gradient(
     135deg,
-    #168cf5,
-    #4aa8ff
+    #dfe9f1,
+    #dae8f5
   );
 
-  color: white;
+  color: black;
 
   margin-bottom: 24px;
 }
@@ -12049,4 +12049,154 @@ textarea {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ============================================================
+   ADMIN QUICK SHORTCUTS
+   ============================================================ */
+
+.admin-quick-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+
+
+/* ============================================================
+   SHORTCUT BUTTON
+   ============================================================ */
+
+.admin-quick-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  min-height: 82px;
+
+  padding: 15px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+
+  box-sizing: border-box;
+}
+
+
+/* ============================================================
+   HOVER
+   ============================================================ */
+
+.admin-quick-shortcut:hover {
+  transform: translateY(-2px);
+
+  border-color: #2563eb;
+
+  background: #f8faff;
+
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.07);
+}
+
+
+/* ============================================================
+   ICON
+   ============================================================ */
+
+.admin-quick-shortcut-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 10px;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+}
+
+
+/* ============================================================
+   CONTENT
+   ============================================================ */
+
+.admin-quick-shortcut-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.admin-quick-shortcut-content strong {
+  font-size: 14px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.admin-quick-shortcut-content span {
+  font-size: 12px;
+  line-height: 1.4;
+
+  color: #6b7280;
+}
+
+
+/* ============================================================
+   FOCUS
+   ============================================================ */
+
+.admin-quick-shortcut:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 1000px) {
+
+  .admin-quick-shortcuts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 650px) {
+
+  .admin-quick-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-quick-shortcut {
+    min-height: 74px;
+  }
+
 }

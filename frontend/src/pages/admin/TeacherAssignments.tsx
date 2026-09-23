@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
+
 import {
   UserPlus,
   BookOpen,
   X,
   Check,
+  RefreshCw,
 } from "lucide-react";
 
 import "./TeacherAssignments.css";
+
+
+// ============================================================
+// API
+// ============================================================
+
+const API_BASE_URL =
+  "http://127.0.0.1:8000";
 
 
 // ============================================================
@@ -38,13 +48,24 @@ interface Subject {
   is_active?: boolean;
 }
 
+interface TeacherAssignment {
+  id: number;
 
-// ============================================================
-// API
-// ============================================================
+  teacher_id: number;
+  teacher_name: string;
+  teacher_email: string;
 
-const API_BASE_URL =
-  "http://127.0.0.1:8000";
+  class_id: number;
+  class_name: string;
+  section: string;
+
+  subject_id: number | null;
+  subject_name: string | null;
+  subject_code: string | null;
+
+  is_class_teacher: boolean;
+  is_active: boolean;
+}
 
 
 // ============================================================
@@ -63,19 +84,33 @@ export default function TeacherAssignments() {
   const [classes, setClasses] =
     useState<ClassItem[]>([]);
 
-  const [subjects, setSubjects] =
+  const [classSubjects, setClassSubjects] =
     useState<Subject[]>([]);
+
+  const [assignments, setAssignments] =
+    useState<TeacherAssignment[]>([]);
 
 
   // ==========================================================
-  // LOADING / MESSAGES
+  // LOADING
   // ==========================================================
 
   const [loading, setLoading] =
     useState(true);
 
+  const [loadingClassSubjects, setLoadingClassSubjects] =
+    useState(false);
+
+  const [loadingAssignments, setLoadingAssignments] =
+    useState(false);
+
   const [assigning, setAssigning] =
     useState(false);
+
+
+  // ==========================================================
+  // MESSAGES
+  // ==========================================================
 
   const [error, setError] =
     useState("");
@@ -85,7 +120,7 @@ export default function TeacherAssignments() {
 
 
   // ==========================================================
-  // TEACHER ASSIGNMENT FORM
+  // FORM
   // ==========================================================
 
   const [selectedTeacher, setSelectedTeacher] =
@@ -103,56 +138,96 @@ export default function TeacherAssignments() {
   const [isClassTeacher, setIsClassTeacher] =
     useState(false);
 
-    const [classSubjects, setClassSubjects] =
-  useState<Subject[]>([]);
 
-const [loadingClassSubjects, setLoadingClassSubjects] =
-  useState(false);
+  // ==========================================================
+  // ASSIGNMENT FILTERS
+  // ==========================================================
 
-  const loadClassSubjects = async (
-  className: string,
-  section: string
-) => {
+  const [assignmentSearch, setAssignmentSearch] =
+    useState("");
 
-  try {
+  const [assignmentClassFilter, setAssignmentClassFilter] =
+    useState("");
 
-    setLoadingClassSubjects(true);
+  const [assignmentTypeFilter, setAssignmentTypeFilter] =
+    useState("");
 
-    setError("");
+
+  // ==========================================================
+  // TOKEN
+  // ==========================================================
+
+  const getToken = (): string | null => {
+
+    return localStorage.getItem(
+      "Smart Attend token"
+    );
+
+  };
+
+
+  // ==========================================================
+  // ERROR PARSER
+  // ==========================================================
+
+  const getErrorMessage = async (
+    response: Response,
+    fallback: string
+  ): Promise<string> => {
+
+    const text =
+      await response.text();
+
+    if (!text) {
+      return fallback;
+    }
+
+    try {
+
+      const data =
+        JSON.parse(text);
+
+      if (data?.detail) {
+
+        if (
+          typeof data.detail === "string"
+        ) {
+
+          return data.detail;
+
+        }
+
+        return JSON.stringify(
+          data.detail
+        );
+
+      }
+
+    } catch {
+      // Ignore invalid JSON
+    }
+
+    return fallback;
+  };
+
+
+  // ==========================================================
+  // LOAD TEACHERS
+  // ==========================================================
+
+  const loadTeachers = async () => {
 
     const token = getToken();
 
     if (!token) {
-
       throw new Error(
         "Authentication token not found. Please login again."
       );
-
-    }
-
-    const schoolClass =
-      classes.find(
-        (item) =>
-          item.name === className &&
-          item.section === section
-      );
-
-    if (!schoolClass) {
-
-      setClassSubjects([]);
-
-      return;
-
     }
 
     const response =
       await fetch(
-        `${API_BASE_URL}/api/subjects/class-options` +
-        `?class_name=${encodeURIComponent(className)}` +
-        `&section=${encodeURIComponent(section)}` +
-        `&academic_year=${encodeURIComponent(
-          schoolClass.academic_year
-        )}`,
+        `${API_BASE_URL}/api/teachers`,
         {
           method: "GET",
 
@@ -168,90 +243,163 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
     if (!response.ok) {
 
-      const text =
-        await response.text();
-
-      let message =
-        `Failed to load class subjects (${response.status})`;
-
-      try {
-
-        const data =
-          JSON.parse(text);
-
-        if (data?.detail) {
-
-          message =
-            typeof data.detail === "string"
-              ? data.detail
-              : JSON.stringify(data.detail);
-
-        }
-
-      } catch {
-        // Ignore invalid JSON
-      }
-
-      throw new Error(message);
+      throw new Error(
+        await getErrorMessage(
+          response,
+          `Failed to load teachers (${response.status})`
+        )
+      );
 
     }
 
     const data =
       await response.json();
 
-    setClassSubjects(
-      Array.isArray(data)
-        ? data
-        : []
-    );
-
-  } catch (err) {
-
-    console.error(
-      "Error loading class subjects:",
-      err
-    );
-
-    setClassSubjects([]);
-
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Failed to load class subjects."
-    );
-
-  } finally {
-
-    setLoadingClassSubjects(false);
-
-  }
-
-};
-
-
-  // ==========================================================
-  // TOKEN
-  // ==========================================================
-
-  const getToken = () => {
-
-    return localStorage.getItem(
-      "Smart Attend token"
+    setTeachers(
+      Array.isArray(
+        data?.teachers
+      )
+        ? data.teachers
+        : Array.isArray(data)
+          ? data
+          : []
     );
 
   };
 
 
   // ==========================================================
-  // LOAD DATA
+  // LOAD CLASSES
   // ==========================================================
 
-  useEffect(() => {
+  const loadClasses = async () => {
 
-    loadData();
+    const token = getToken();
 
-  }, []);
+    if (!token) {
+      throw new Error(
+        "Authentication token not found. Please login again."
+      );
+    }
 
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/classes/options`,
+        {
+          method: "GET",
+
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+
+            Accept:
+              "application/json",
+          },
+        }
+      );
+
+    if (!response.ok) {
+
+      throw new Error(
+        await getErrorMessage(
+          response,
+          `Failed to load classes (${response.status})`
+        )
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    setClasses(
+      Array.isArray(data)
+        ? data
+        : []
+    );
+
+  };
+
+
+  // ==========================================================
+  // LOAD ASSIGNMENTS
+  // ==========================================================
+
+  const loadAssignments = async () => {
+
+    try {
+
+      setLoadingAssignments(true);
+
+      const token = getToken();
+
+      if (!token) {
+        throw new Error(
+          "Authentication token not found. Please login again."
+        );
+      }
+
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/teacher-assignments`,
+          {
+            method: "GET",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              Accept:
+                "application/json",
+            },
+          }
+        );
+
+      if (!response.ok) {
+
+        throw new Error(
+          await getErrorMessage(
+            response,
+            `Failed to load teacher assignments (${response.status})`
+          )
+        );
+
+      }
+
+      const data =
+        await response.json();
+
+      setAssignments(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Error loading assignments:",
+        err
+      );
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load teacher assignments."
+      );
+
+    } finally {
+
+      setLoadingAssignments(false);
+
+    }
+
+  };
+
+
+  // ==========================================================
+  // LOAD ALL DATA
+  // ==========================================================
 
   const loadData = async () => {
 
@@ -261,216 +409,24 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
       setError("");
 
-
-      const token = getToken();
-
-
-      if (!token) {
-
-        throw new Error(
-          "Authentication token not found. Please login again."
-        );
-
-      }
-
-
-      const headers = {
-
-        Authorization:
-          `Bearer ${token}`,
-
-        Accept:
-          "application/json",
-
-      };
-
-
-      // ------------------------------------------------------
-      // LOAD TEACHERS
-      // ------------------------------------------------------
-
-      const teachersResponse =
-        await fetch(
-          `${API_BASE_URL}/api/teachers`,
-          {
-            method: "GET",
-            headers,
-          }
-        );
-
-
-      if (!teachersResponse.ok) {
-
-        const text =
-          await teachersResponse.text();
-
-        let message =
-          `Failed to load teachers (${teachersResponse.status})`;
-
-        try {
-
-          const data =
-            JSON.parse(text);
-
-          if (data?.detail) {
-
-            message =
-              typeof data.detail === "string"
-                ? data.detail
-                : JSON.stringify(data.detail);
-
-          }
-
-        } catch {
-          // Ignore invalid JSON
-        }
-
-        throw new Error(message);
-
-      }
-
-
-      const teachersData =
-        await teachersResponse.json();
-
-
-      setTeachers(
-        Array.isArray(
-          teachersData?.teachers
-        )
-          ? teachersData.teachers
-          : Array.isArray(teachersData)
-            ? teachersData
-            : []
-      );
-
-
-      // ------------------------------------------------------
-      // LOAD CLASSES
-      // ------------------------------------------------------
-
-      const classesResponse =
-        await fetch(
-          `${API_BASE_URL}/api/classes/options`,
-          {
-            method: "GET",
-            headers,
-          }
-        );
-
-
-      if (!classesResponse.ok) {
-
-        const text =
-          await classesResponse.text();
-
-        let message =
-          `Failed to load classes (${classesResponse.status})`;
-
-        try {
-
-          const data =
-            JSON.parse(text);
-
-          if (data?.detail) {
-
-            message =
-              typeof data.detail === "string"
-                ? data.detail
-                : JSON.stringify(data.detail);
-
-          }
-
-        } catch {
-          // Ignore invalid JSON
-        }
-
-        throw new Error(message);
-
-      }
-
-
-      const classesData =
-        await classesResponse.json();
-
-
-      setClasses(
-        Array.isArray(classesData)
-          ? classesData
-          : []
-      );
-
-
-      // ------------------------------------------------------
-      // LOAD SUBJECTS
-      // ------------------------------------------------------
-
-      const subjectsResponse =
-        await fetch(
-          `${API_BASE_URL}/api/subjects/options`,
-          {
-            method: "GET",
-            headers,
-          }
-        );
-
-
-      if (!subjectsResponse.ok) {
-
-        const text =
-          await subjectsResponse.text();
-
-        let message =
-          `Failed to load subjects (${subjectsResponse.status})`;
-
-        try {
-
-          const data =
-            JSON.parse(text);
-
-          if (data?.detail) {
-
-            message =
-              typeof data.detail === "string"
-                ? data.detail
-                : JSON.stringify(data.detail);
-
-          }
-
-        } catch {
-          // Ignore invalid JSON
-        }
-
-        throw new Error(message);
-
-      }
-
-
-      const subjectsData =
-        await subjectsResponse.json();
-
-
-      setSubjects(
-        Array.isArray(subjectsData)
-          ? subjectsData
-          : []
-      );
-
+      await Promise.all([
+        loadTeachers(),
+        loadClasses(),
+        loadAssignments(),
+      ]);
 
     } catch (err) {
 
       console.error(
-        "Error loading teacher assignments:",
+        "Error loading teacher assignment data:",
         err
       );
-
 
       setError(
         err instanceof Error
           ? err.message
           : "Failed to load teacher assignment data."
       );
-
 
     } finally {
 
@@ -481,78 +437,237 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
   };
 
 
-  // ============================================================
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
+
+  useEffect(() => {
+
+    loadData();
+
+  }, []);
+
+
+  // ==========================================================
   // CLASS NAMES
-  // ============================================================
+  // ==========================================================
 
   const classNames =
     Array.from(
       new Set(
         classes.map(
-          (item) => item.name
+          (item) =>
+            item.name
         )
       )
-    );
+    ).sort();
 
 
-  // ============================================================
+  // ==========================================================
   // AVAILABLE SECTIONS
-  // ============================================================
+  // ==========================================================
 
   const availableSections =
     classes
       .filter(
         (item) =>
-          item.name === selectedClass
+          item.name ===
+          selectedClass
       )
       .map(
         (item) =>
           item.section
       );
 
-  const handleClassChange = (value: string) => {
-    setSelectedClass(value);
-    setSelectedSection("");
-    setSelectedSubject("");
+
+  // ==========================================================
+  // GET TEACHER NAME
+  // ==========================================================
+
+  const getTeacherName = (
+    teacher: Teacher
+  ): string => {
+
+    return (
+      teacher.full_name ||
+      teacher.name ||
+      teacher.email
+    );
+
   };
-  // ============================================================
+
+
+  // ==========================================================
+  // LOAD SUBJECTS FOR CLASS
+  // ==========================================================
+
+  const loadClassSubjects = async (
+    className: string,
+    section: string
+  ) => {
+
+    try {
+
+      setLoadingClassSubjects(true);
+
+      setError("");
+
+      const token = getToken();
+
+      if (!token) {
+
+        throw new Error(
+          "Authentication token not found. Please login again."
+        );
+
+      }
+
+      const schoolClass =
+        classes.find(
+          (item) =>
+            item.name === className &&
+            item.section === section
+        );
+
+      if (!schoolClass) {
+
+        setClassSubjects([]);
+
+        return;
+
+      }
+
+      const params =
+        new URLSearchParams({
+          class_name:
+            className,
+
+          section:
+            section,
+
+          academic_year:
+            schoolClass.academic_year,
+        });
+
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/subjects/class-options?${params.toString()}`,
+          {
+            method: "GET",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              Accept:
+                "application/json",
+            },
+          }
+        );
+
+      if (!response.ok) {
+
+        throw new Error(
+          await getErrorMessage(
+            response,
+            `Failed to load subjects (${response.status})`
+          )
+        );
+
+      }
+
+      const data =
+        await response.json();
+
+      setClassSubjects(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Error loading class subjects:",
+        err
+      );
+
+      setClassSubjects([]);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load class subjects."
+      );
+
+    } finally {
+
+      setLoadingClassSubjects(false);
+
+    }
+
+  };
+
+
+  // ==========================================================
   // HANDLE CLASS CHANGE
-  // ============================================================
+  // ==========================================================
 
-  const handleSectionChange = async (
-  value: string
-) => {
+  const handleClassChange = (
+    value: string
+  ) => {
 
-  setSelectedSection(value);
+    setSelectedClass(value);
 
-  setSelectedSubject("");
+    setSelectedSection("");
 
-  if (!selectedClass || !value) {
+    setSelectedSubject("");
 
     setClassSubjects([]);
 
-    return;
-
-  }
-
-  await loadClassSubjects(
-    selectedClass,
-    value
-  );
-
-};
+  };
 
 
-  // ============================================================
-  // HANDLE CLASS TEACHER CHANGE
-  // ============================================================
+  // ==========================================================
+  // HANDLE SECTION CHANGE
+  // ==========================================================
+
+  const handleSectionChange = async (
+    value: string
+  ) => {
+
+    setSelectedSection(value);
+
+    setSelectedSubject("");
+
+    setClassSubjects([]);
+
+    if (
+      !selectedClass ||
+      !value
+    ) {
+
+      return;
+
+    }
+
+    await loadClassSubjects(
+      selectedClass,
+      value
+    );
+
+  };
+
+
+  // ==========================================================
+  // HANDLE CLASS TEACHER
+  // ==========================================================
 
   const handleClassTeacherChange = (
     checked: boolean
   ) => {
 
     setIsClassTeacher(checked);
-
 
     if (checked) {
 
@@ -563,24 +678,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
   };
 
 
-  // ============================================================
-  // TEACHER DISPLAY NAME
-  // ============================================================
-
-  const getTeacherName = (
-    teacher: Teacher
-  ) => {
-
-    return (
-      teacher.full_name ||
-      teacher.name ||
-      teacher.email
-    );
-
-  };
-  // ============================================================
+  // ==========================================================
   // CLEAR FORM
-  // ============================================================
+  // ==========================================================
 
   const clearForm = () => {
 
@@ -592,18 +692,16 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
     setSelectedSubject("");
 
+    setClassSubjects([]);
+
     setIsClassTeacher(false);
-
-    setError("");
-
-    setSuccess("");
 
   };
 
 
-  // ============================================================
+  // ==========================================================
   // ASSIGN TEACHER
-  // ============================================================
+  // ==========================================================
 
   const assignTeacher = async () => {
 
@@ -618,7 +716,6 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
       const token = getToken();
 
-
       if (!token) {
 
         throw new Error(
@@ -628,9 +725,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       }
 
 
-      // --------------------------------------------------------
+      // ------------------------------------------------------
       // VALIDATE TEACHER
-      // --------------------------------------------------------
+      // ------------------------------------------------------
 
       if (!selectedTeacher) {
 
@@ -641,9 +738,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       }
 
 
-      // --------------------------------------------------------
+      // ------------------------------------------------------
       // VALIDATE CLASS
-      // --------------------------------------------------------
+      // ------------------------------------------------------
 
       if (!selectedClass) {
 
@@ -654,9 +751,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       }
 
 
-      // --------------------------------------------------------
+      // ------------------------------------------------------
       // VALIDATE SECTION
-      // --------------------------------------------------------
+      // ------------------------------------------------------
 
       if (!selectedSection) {
 
@@ -667,9 +764,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       }
 
 
-      // --------------------------------------------------------
-      // SUBJECT REQUIRED FOR SUBJECT TEACHER
-      // --------------------------------------------------------
+      // ------------------------------------------------------
+      // VALIDATE SUBJECT
+      // ------------------------------------------------------
 
       if (
         !isClassTeacher &&
@@ -683,9 +780,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       }
 
 
-      // --------------------------------------------------------
+      // ------------------------------------------------------
       // FIND TEACHER
-      // --------------------------------------------------------
+      // ------------------------------------------------------
 
       const teacher =
         teachers.find(
@@ -693,7 +790,6 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
             String(item.id) ===
             selectedTeacher
         );
-
 
       if (!teacher) {
 
@@ -704,9 +800,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       }
 
 
-      // ========================================================
-      // CLASS TEACHER ASSIGNMENT
-      // ========================================================
+      // ======================================================
+      // CLASS TEACHER
+      // ======================================================
 
       if (isClassTeacher) {
 
@@ -717,7 +813,6 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
               method: "POST",
 
               headers: {
-
                 Authorization:
                   `Bearer ${token}`,
 
@@ -726,87 +821,73 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
                 Accept:
                   "application/json",
-
               },
 
               body:
                 JSON.stringify({
-
                   teacher_email:
                     teacher.email,
 
                   assignments: [
-
                     {
                       class_name:
                         selectedClass,
 
                       section:
                         selectedSection,
-
-                    }
-
-                  ]
-
-                })
-
+                    },
+                  ],
+                }),
             }
           );
 
 
-        const responseText =
-          await response.text();
-
-
         if (!response.ok) {
 
-          let message =
-            `Failed to assign class teacher (${response.status})`;
-
-
-          try {
-
-            const data =
-              JSON.parse(responseText);
-
-
-            if (data?.detail) {
-
-              message =
-                typeof data.detail === "string"
-                  ? data.detail
-                  : JSON.stringify(data.detail);
-
-            }
-
-          } catch {
-            // Ignore invalid JSON
-          }
-
-
-          throw new Error(message);
+          throw new Error(
+            await getErrorMessage(
+              response,
+              `Failed to assign class teacher (${response.status})`
+            )
+          );
 
         }
 
 
+        const createdAssignments =
+          await response.json();
+
+
+        const assignedTeacherName =
+          getTeacherName(teacher);
+
+
         setSuccess(
-          `Class teacher assigned successfully! ${getTeacherName(teacher)} is now the class teacher for ${selectedClass} - Section ${selectedSection}.`
+          `${assignedTeacherName} has been successfully assigned as Class Teacher for ${selectedClass} - Section ${selectedSection}.`
+        );
+
+
+        console.log(
+          "Class teacher assignment:",
+          createdAssignments
         );
 
 
         clearForm();
+
+        await loadAssignments();
 
         return;
 
       }
 
 
-      // ========================================================
-      // SUBJECT TEACHER ASSIGNMENT
-      // ========================================================
+      // ======================================================
+      // SUBJECT TEACHER
+      // ======================================================
 
       const subject =
-        subjects.find(
+        classSubjects.find(
           (item) =>
             String(item.id) ===
             selectedSubject
@@ -829,7 +910,6 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
             method: "POST",
 
             headers: {
-
               Authorization:
                 `Bearer ${token}`,
 
@@ -838,19 +918,15 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
               Accept:
                 "application/json",
-
             },
 
             body:
               JSON.stringify({
-
                 teacher_email:
                   teacher.email,
 
                 assignments: [
-
                   {
-
                     class_name:
                       selectedClass,
 
@@ -859,59 +935,47 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
                     subject_name:
                       subject.name,
-
-                  }
-
-                ]
-
-              })
-
+                  },
+                ],
+              }),
           }
         );
 
 
-      const responseText =
-        await response.text();
-
-
       if (!response.ok) {
 
-        let message =
-          `Failed to assign subject teacher (${response.status})`;
-
-
-        try {
-
-          const data =
-            JSON.parse(responseText);
-
-
-          if (data?.detail) {
-
-            message =
-              typeof data.detail === "string"
-                ? data.detail
-                : JSON.stringify(data.detail);
-
-          }
-
-        } catch {
-          // Ignore invalid JSON
-        }
-
-
-        throw new Error(message);
+        throw new Error(
+          await getErrorMessage(
+            response,
+            `Failed to assign subject teacher (${response.status})`
+          )
+        );
 
       }
 
 
+      const createdAssignments =
+        await response.json();
+
+
+      const assignedTeacherName =
+        getTeacherName(teacher);
+
+
       setSuccess(
-        `Subject teacher assigned successfully! ${getTeacherName(teacher)} will teach ${subject.name} to ${selectedClass} - Section ${selectedSection}.`
+        `${assignedTeacherName} has been successfully assigned to teach ${subject.name} for ${selectedClass} - Section ${selectedSection}.`
+      );
+
+
+      console.log(
+        "Subject teacher assignment:",
+        createdAssignments
       );
 
 
       clearForm();
 
+      await loadAssignments();
 
     } catch (err) {
 
@@ -920,13 +984,11 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
         err
       );
 
-
       setError(
         err instanceof Error
           ? err.message
           : "Failed to assign teacher."
       );
-
 
     } finally {
 
@@ -937,9 +999,71 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
   };
 
 
-  // ============================================================
+  // ==========================================================
+  // FILTER ASSIGNMENTS
+  // ==========================================================
+
+  const filteredAssignments =
+    assignments.filter(
+      (assignment) => {
+
+        const search =
+          assignmentSearch
+            .trim()
+            .toLowerCase();
+
+        const matchesSearch =
+          !search ||
+          assignment.teacher_name
+            .toLowerCase()
+            .includes(search) ||
+          assignment.teacher_email
+            .toLowerCase()
+            .includes(search) ||
+          assignment.class_name
+            .toLowerCase()
+            .includes(search) ||
+          assignment.section
+            .toLowerCase()
+            .includes(search) ||
+          (
+            assignment.subject_name || ""
+          )
+            .toLowerCase()
+            .includes(search);
+
+
+        const matchesClass =
+          !assignmentClassFilter ||
+          assignment.class_name ===
+            assignmentClassFilter;
+
+
+        const assignmentType =
+          assignment.is_class_teacher
+            ? "class"
+            : "subject";
+
+
+        const matchesType =
+          !assignmentTypeFilter ||
+          assignmentType ===
+            assignmentTypeFilter;
+
+
+        return (
+          matchesSearch &&
+          matchesClass &&
+          matchesType
+        );
+
+      }
+    );
+
+
+  // ==========================================================
   // LOADING STATE
-  // ============================================================
+  // ==========================================================
 
   if (loading) {
 
@@ -966,16 +1090,20 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
     );
 
   }
-  // ============================================================
+
+
+  // ==========================================================
   // UI
-  // ============================================================
+  // ==========================================================
 
   return (
+
     <div className="teacher-assignments">
 
-      {/* ====================================================== */}
+
+      {/* ================================================== */}
       {/* HEADER */}
-      {/* ====================================================== */}
+      {/* ================================================== */}
 
       <div className="teacher-assignment-header">
 
@@ -998,11 +1126,12 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       </div>
 
 
-      {/* ====================================================== */}
-      {/* SUCCESS MESSAGE */}
-      {/* ====================================================== */}
+      {/* ================================================== */}
+      {/* SUCCESS */}
+      {/* ================================================== */}
 
       {success && (
+
         <div className="teacher-assignment-message success">
 
           <Check size={18} />
@@ -1013,20 +1142,24 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
           <button
             type="button"
-            onClick={() => setSuccess("")}
+            onClick={() =>
+              setSuccess("")
+            }
           >
             <X size={16} />
           </button>
 
         </div>
+
       )}
 
 
-      {/* ====================================================== */}
-      {/* ERROR MESSAGE */}
-      {/* ====================================================== */}
+      {/* ================================================== */}
+      {/* ERROR */}
+      {/* ================================================== */}
 
       {error && (
+
         <div className="teacher-assignment-message error">
 
           <span>
@@ -1035,20 +1168,24 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
           <button
             type="button"
-            onClick={() => setError("")}
+            onClick={() =>
+              setError("")
+            }
           >
             <X size={16} />
           </button>
 
         </div>
+
       )}
 
 
-      {/* ====================================================== */}
+      {/* ================================================== */}
       {/* ASSIGNMENT CARD */}
-      {/* ====================================================== */}
+      {/* ================================================== */}
 
       <div className="teacher-assignment-card">
+
 
         <div className="teacher-assignment-card-header">
 
@@ -1084,52 +1221,42 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
           <div className="teacher-assignment-field">
 
-  <label>
-    Subject
-  </label>
+            <label>
+              Teacher
+            </label>
 
-  <select
-    value={selectedSubject}
-    onChange={(event) =>
-      handleSectionChange(
-        event.target.value
-      )
-    }
-    disabled={
-      !selectedClass ||
-      !selectedSection ||
-      assigning ||
-      loadingClassSubjects
-    }
-  >
+            <select
+              value={selectedTeacher}
+              onChange={(event) =>
+                setSelectedTeacher(
+                  event.target.value
+                )
+              }
+              disabled={assigning}
+            >
 
-    <option value="">
-      {loadingClassSubjects
-        ? "Loading subjects..."
-        : "Select subject"}
-    </option>
+              <option value="">
+                Select teacher
+              </option>
 
-    {classSubjects.map(
-      (subject) => (
+              {teachers.map(
+                (teacher) => (
 
-        <option
-          key={subject.id}
-          value={subject.id}
-        >
-          {subject.name} ({subject.code})
-        </option>
+                  <option
+                    key={teacher.id}
+                    value={teacher.id}
+                  >
+                    {getTeacherName(teacher)}
+                    {" — "}
+                    {teacher.email}
+                  </option>
 
-      )
-    )}
+                )
+              )}
 
-  </select>
+            </select>
 
-  <small>
-    Only subjects assigned to this
-    class and section are shown.
-  </small>
-
-</div>
+          </div>
 
 
           {/* ================================================= */}
@@ -1187,7 +1314,7 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
             <select
               value={selectedSection}
               onChange={(event) =>
-                setSelectedSection(
+                handleSectionChange(
                   event.target.value
                 )
               }
@@ -1274,22 +1401,29 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
                 disabled={
                   !selectedClass ||
                   !selectedSection ||
-                  assigning
+                  assigning ||
+                  loadingClassSubjects
                 }
               >
 
                 <option value="">
-                  Select subject
+
+                  {loadingClassSubjects
+                    ? "Loading subjects..."
+                    : "Select subject"}
+
                 </option>
 
-                {subjects.map(
+                {classSubjects.map(
                   (subject) => (
 
                     <option
                       key={subject.id}
                       value={subject.id}
                     >
-                      {subject.name} ({subject.code})
+                      {subject.name}
+                      {" "}
+                      ({subject.code})
                     </option>
 
                   )
@@ -1298,8 +1432,8 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
               </select>
 
               <small>
-                The subject must already be assigned
-                to this class.
+                Only subjects assigned to this
+                class and section are shown.
               </small>
 
             </div>
@@ -1331,13 +1465,17 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
             >
 
               {assigning ? (
+
                 "Assigning..."
+
               ) : (
+
                 <>
                   <UserPlus size={17} />
 
                   Assign Teacher
                 </>
+
               )}
 
             </button>
@@ -1349,9 +1487,324 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       </div>
 
 
-      {/* ====================================================== */}
+      {/* ================================================== */}
+      {/* EXISTING ASSIGNMENTS */}
+      {/* ================================================== */}
+
+      <div className="teacher-assignment-card">
+
+        <div className="teacher-assignment-card-header">
+
+          <div>
+
+            <h2>
+              Current Teacher Assignments
+            </h2>
+
+            <p>
+              View which teacher is assigned to
+              each class, section and subject.
+            </p>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={loadAssignments}
+            disabled={loadingAssignments}
+            title="Refresh assignments"
+          >
+            <RefreshCw
+              size={20}
+              className={
+                loadingAssignments
+                  ? "spinning"
+                  : ""
+              }
+            />
+          </button>
+
+        </div>
+
+
+        {/* ================================================== */}
+        {/* FILTERS */}
+        {/* ================================================== */}
+
+        {assignments.length > 0 && (
+
+          <div className="teacher-assignment-form">
+
+            <div className="teacher-assignment-field">
+
+              <label>
+                Search
+              </label>
+
+              <input
+                type="text"
+                placeholder="Teacher, email, class or subject"
+                value={assignmentSearch}
+                onChange={(event) =>
+                  setAssignmentSearch(
+                    event.target.value
+                  )
+                }
+              />
+
+            </div>
+
+
+            <div className="teacher-assignment-field">
+
+              <label>
+                Class
+              </label>
+
+              <select
+                value={assignmentClassFilter}
+                onChange={(event) =>
+                  setAssignmentClassFilter(
+                    event.target.value
+                  )
+                }
+              >
+
+                <option value="">
+                  All Classes
+                </option>
+
+                {classNames.map(
+                  (className) => (
+
+                    <option
+                      key={className}
+                      value={className}
+                    >
+                      {className}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+            </div>
+
+
+            <div className="teacher-assignment-field">
+
+              <label>
+                Assignment Type
+              </label>
+
+              <select
+                value={assignmentTypeFilter}
+                onChange={(event) =>
+                  setAssignmentTypeFilter(
+                    event.target.value
+                  )
+                }
+              >
+
+                <option value="">
+                  All Types
+                </option>
+
+                <option value="class">
+                  Class Teachers
+                </option>
+
+                <option value="subject">
+                  Subject Teachers
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* ================================================== */}
+        {/* TABLE */}
+        {/* ================================================== */}
+
+        {filteredAssignments.length > 0 ? (
+
+          <div className="teacher-assignment-table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Teacher
+                  </th>
+
+                  <th>
+                    Class
+                  </th>
+
+                  <th>
+                    Section
+                  </th>
+
+                  <th>
+                    Subject
+                  </th>
+
+                  <th>
+                    Assignment Type
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {filteredAssignments.map(
+                  (assignment) => (
+
+                    <tr
+                      key={
+                        assignment.id
+                      }
+                    >
+
+                      {/* TEACHER */}
+
+                      <td>
+
+                        <strong>
+                          {
+                            assignment.teacher_name
+                          }
+                        </strong>
+
+                        <br />
+
+                        <small>
+                          {
+                            assignment.teacher_email
+                          }
+                        </small>
+
+                      </td>
+
+
+                      {/* CLASS */}
+
+                      <td>
+                        {
+                          assignment.class_name
+                        }
+                      </td>
+
+
+                      {/* SECTION */}
+
+                      <td>
+                        Section{" "}
+                        {
+                          assignment.section
+                        }
+                      </td>
+
+
+                      {/* SUBJECT */}
+
+                      <td>
+
+                        {assignment.is_class_teacher
+                          ? "—"
+                          : (
+                            <>
+                              {
+                                assignment.subject_name
+                              }
+
+                              {assignment.subject_code && (
+                                <>
+                                  {" "}
+                                  (
+                                  {
+                                    assignment.subject_code
+                                  }
+                                  )
+                                </>
+                              )}
+                            </>
+                          )}
+
+                      </td>
+
+
+                      {/* TYPE */}
+
+                      <td>
+
+                        <span
+                          className={
+                            assignment.is_class_teacher
+                              ? "teacher-assignment-type class-teacher"
+                              : "teacher-assignment-type subject-teacher"
+                          }
+                        >
+
+                          {assignment.is_class_teacher
+                            ? "Class Teacher"
+                            : "Subject Teacher"}
+
+                        </span>
+
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        ) : (
+
+          <div className="teacher-assignment-empty">
+
+            <BookOpen size={30} />
+
+            <strong>
+              {assignments.length === 0
+                ? "No teacher assignments yet"
+                : "No assignments match your filters"}
+            </strong>
+
+            <span>
+              {assignments.length === 0
+                ? "Assign a teacher above to see the assignment here."
+                : "Try changing your search or filters."}
+            </span>
+
+          </div>
+
+        )}
+
+      </div>
+
+
+      {/* ================================================== */}
       {/* INFORMATION */}
-      {/* ====================================================== */}
+      {/* ================================================== */}
 
       <div className="teacher-assignment-card">
 
@@ -1419,14 +1872,15 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
 
           </div>
 
+
         </div>
 
       </div>
 
 
-      {/* ====================================================== */}
+      {/* ================================================== */}
       {/* NO TEACHERS */}
-      {/* ====================================================== */}
+      {/* ================================================== */}
 
       {teachers.length === 0 && (
 
@@ -1439,8 +1893,9 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
           </strong>
 
           <span>
-            Create a teacher first from the Teachers
-            page before making assignments.
+            Create a teacher first from the
+            Teachers page before making
+            assignments.
           </span>
 
         </div>
@@ -1448,5 +1903,7 @@ const [loadingClassSubjects, setLoadingClassSubjects] =
       )}
 
     </div>
+
   );
+
 }

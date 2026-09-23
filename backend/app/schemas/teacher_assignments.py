@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 # ============================================================
@@ -32,14 +32,25 @@ class SubjectTeacherBulkCreate(BaseModel):
 
 
 # ============================================================
-# RESPONSE
+# ASSIGNMENT RESPONSE
 # ============================================================
 
 class TeacherAssignmentResponse(BaseModel):
+
     id: int
+
     teacher_id: int
+    teacher_name: str
+    teacher_email: str
+
     class_id: int
-    subject_id: int | None
+    class_name: str
+    section: str
+
+    subject_id: Optional[int] = None
+    subject_name: Optional[str] = None
+    subject_code: Optional[str] = None
+
     is_class_teacher: bool
     is_active: bool
 

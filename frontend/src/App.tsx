@@ -81,6 +81,9 @@ import Subjects
 
 import TeacherAssignments
  from "./pages/admin/TeacherAssignments";
+
+import AdminReports
+ from "./pages/admin/AdminReports";
  // ============================================================
 // PLACEHOLDER
 // ============================================================
@@ -180,14 +183,13 @@ function App() {
                 }
               />
 
+              <Route
+                path="/records"
+                element={
+                  <AdminReports />
+                }
+              />
 
-              
-
-
-              
-
-
-              
 
             </Route>
 

@@ -8,10 +8,8 @@ import {
   Users,
   GraduationCap,
   BookOpen,
-  ClipboardList,
   UserCheck,
   BarChart3,
-  Settings,
   LogOut,
   Building2,
 } from "lucide-react";
@@ -178,20 +176,9 @@ function AdminLayout() {
             Teacher Assignments
           </button>
 
-
           <button
             onClick={() =>
-              navigate("/attendance")
-            }
-          >
-            <ClipboardList size={20} />
-            Attendance
-          </button>
-
-
-          <button
-            onClick={() =>
-              navigate("/reports")
+              navigate("/records")
             }
           >
             <BarChart3 size={20} />
@@ -203,14 +190,6 @@ function AdminLayout() {
 
         <div className="sidebar-bottom">
 
-          <button
-            onClick={() =>
-              navigate("/settings")
-            }
-          >
-            <Settings size={20} />
-            Settings
-          </button>
 
 
           <button
